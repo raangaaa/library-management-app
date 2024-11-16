@@ -1,0 +1,50 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Perpustakaan.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Perpustakaan.Views.BookPageView"
+             x:DataType="vm:BookPageViewModel">
+    <Grid RowDefinitions="Auto,Auto,Auto,Auto">
+      <TextBlock Grid.Row="0" FontSize="35" FontWeight="SemiBold" Foreground="#000">Book Data Page</TextBlock>
+
+      <Border Grid.Row="1" Margin="0 23 0 23" HorizontalAlignment="Left" Width="200" Height="100" Background="BlanchedAlmond" CornerRadius="10 10 10 10" Padding="20">
+        <TextBlock VerticalAlignment="Center" FontSize="35" FontWeight="SemiBold" Foreground="#000">Book 100</TextBlock>
+      </Border>
+
+      <Grid Grid.Row="2" Margin="0 23 0 23">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+        </Grid.ColumnDefinitions>
+
+        <TextBox Grid.Column="0" Watermark="Search title ..." Width="130" />
+        <Button Grid.Column="1" Content="Search" Background="Blue" Foreground="White" Padding="7" Margin="20 0 0 0"/>
+        <Button Grid.Column="2" Content="Create" Background="Green" Foreground="White" Padding="7" />
+      </Grid>
+
+      <DataGrid GridLinesVisibility="All" ItemsSource="{Binding Books}" BorderThickness="1" BorderBrush="Gray" >
+
+        <DataGrid.Columns>
+          <DataGridCheckBoxColumn Width="Auto" CanUserResize="False">
+            <DataGridCheckBoxColumn.HeaderTemplate>
+              <DataTemplate>
+                <CheckBox />
+              </DataTemplate>
+            </DataGridCheckBoxColumn.HeaderTemplate>  
+          </DataGridCheckBoxColumn>
+
+          <DataGridTextColumn Header="Title" Binding="{Binding Title}" CanUserSort="True" />
+          <DataGridTextColumn Header="Author" Binding="{Binding Author}" CanUserSort="True"/>
+          <DataGridTextColumn Header="Publisher" Binding="{Binding Publisher}" CanUserSort="True"/>
+          <DataGridTextColumn Header="Year" Binding="{Binding Year}" CanUserSort="True"/>
+          <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" CanUserSort="True"/>          
+        
+        </DataGrid.Columns>
+        
+      </DataGrid>
+
+    </Grid>
+</UserControl>
