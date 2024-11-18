@@ -9,11 +9,7 @@
     <Grid RowDefinitions="Auto,Auto,Auto,Auto">
       <TextBlock Grid.Row="0" FontSize="35" FontWeight="SemiBold" Foreground="#000">Book Data Page</TextBlock>
 
-      <Border Grid.Row="1" Margin="0 23 0 23" HorizontalAlignment="Left" Width="200" Height="100" Background="BlanchedAlmond" CornerRadius="10 10 10 10" Padding="20">
-        <TextBlock VerticalAlignment="Center" FontSize="35" FontWeight="SemiBold" Foreground="#000">Book 100</TextBlock>
-      </Border>
-
-      <Grid Grid.Row="2" Margin="0 23 0 23">
+      <Grid Grid.Row="1" Margin="0 23 0 23">
         <Grid.ColumnDefinitions>
             <ColumnDefinition Width="Auto" />
             <ColumnDefinition Width="*" />
@@ -25,26 +21,44 @@
         <Button Grid.Column="2" Content="Create" Background="Green" Foreground="White" Padding="7" />
       </Grid>
 
-      <DataGrid GridLinesVisibility="All" ItemsSource="{Binding Books}" BorderThickness="1" BorderBrush="Gray" >
+      <DataGrid Grid.Row="2" GridLinesVisibility="All" AutoGenerateColumns="False"
+                ItemsSource="{Binding Books}" BorderThickness="2 0 2 0" BorderBrush="Black" CornerRadius="3"
+                IsReadOnly="True" HorizontalGridLinesBrush="Black" VerticalGridLinesBrush="Black"
+                CanUserReorderColumns="False" Foreground="Black"
+                CanUserResizeColumns="False">
 
         <DataGrid.Columns>
-          <DataGridCheckBoxColumn Width="Auto" CanUserResize="False">
+          <!-- <DataGridCheckBoxColumn Width="Auto" CanUserResize="False">
             <DataGridCheckBoxColumn.HeaderTemplate>
               <DataTemplate>
-                <CheckBox />
+                <CheckBox Foreground="#000" />
               </DataTemplate>
             </DataGridCheckBoxColumn.HeaderTemplate>  
-          </DataGridCheckBoxColumn>
+          </DataGridCheckBoxColumn> -->
 
-          <DataGridTextColumn Header="Title" Binding="{Binding Title}" CanUserSort="True" />
-          <DataGridTextColumn Header="Author" Binding="{Binding Author}" CanUserSort="True"/>
-          <DataGridTextColumn Header="Publisher" Binding="{Binding Publisher}" CanUserSort="True"/>
-          <DataGridTextColumn Header="Year" Binding="{Binding Year}" CanUserSort="True"/>
-          <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" CanUserSort="True"/>          
+          <DataGridTextColumn Header="Title" Binding="{Binding Title}" CanUserSort="True" Width="*" />
+          <DataGridTextColumn Header="Author" Binding="{Binding Author}" CanUserSort="True" Width="*" />
+          <DataGridTextColumn Header="Publisher" Binding="{Binding Publisher}" CanUserSort="True" Width="*" />
+          <DataGridTextColumn Header="Year" Binding="{Binding Year}" CanUserSort="True" Width="*" />
+          <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" CanUserSort="True" Width="*" />        
+
+          <DataGridTemplateColumn Header="Operations" Width="Auto" >
+              <DataGridTemplateColumn.CellTemplate>
+                  <DataTemplate>
+                      <Grid ColumnDefinitions="*,*">
+                        <Button Grid.Column="0" Classes="gridEditButton" HorizontalAlignment="Center">
+                            <PathIcon Height="11" Data="{StaticResource EditRegular}" />
+                        </Button>
+                        <Button Grid.Column="1" Classes="gridRemoveButton" HorizontalAlignment="Center">
+                            <PathIcon Height="11" Data="{StaticResource DeleteRegular}" />  
+                        </Button>
+                      </Grid>
+                  </DataTemplate>
+              </DataGridTemplateColumn.CellTemplate>
+          </DataGridTemplateColumn>  
         
         </DataGrid.Columns>
         
       </DataGrid>
-
     </Grid>
 </UserControl>

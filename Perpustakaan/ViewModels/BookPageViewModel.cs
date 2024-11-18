@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using Perpustakaan.Models;
@@ -12,12 +13,21 @@ public class BookPageViewModel : ViewModelBase
     {
         var people = new List<Book> 
         {
-            new(1, "makan", "makan","makan", 1020, 10),
-             new(2, "makan", "makan","makan", 1020, 10),
-              new(3, "makan", "makan","makan", 1020, 10),
-               new(4, "makan", "makan","makan", 1020, 10),
+            new(1, "Abdu", "makan","makan", 1020, 10),
+            new(2, "Budi", "makan","makan", 1020, 10),
+            new(3, "Juni", "makan","makan", 1020, 10),
+            new(4, "Kayla", "makan","makan", 1020, 10),
+            new(5, "Soni", "makan","makan", 1020, 10),
+            new(6, "Makala", "makan","makan", 1020, 10),
+            new(7, "Joni", "makan","makan", 1020, 10),
+            new(8, "Kyu", "makan","makan", 1020, 10),
+            new(9, "Ryu", "makan","makan", 1020, 10),
+            new(10, "Soi", "makan","makan", 1020, 10),
         };
         Books = [.. people];
+
+        // Debug jumlah item
+        Console.WriteLine($"Jumlah item di Books: {Books.Count}");
     }
 }
 

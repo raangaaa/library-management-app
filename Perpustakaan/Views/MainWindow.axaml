@@ -7,7 +7,7 @@
         mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
         x:Class="Perpustakaan.Views.MainWindow"
         WindowStartupLocation="CenterScreen"
-        Icon="/Assets/avalonia-logo.ico"
-        Title="Perpustakaan">
+        Icon="/Assets/books.png"
+        Title="Library Management">
         <views:MainView />
 </Window>

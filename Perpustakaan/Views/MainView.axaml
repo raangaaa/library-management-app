@@ -11,55 +11,59 @@
     <vm:MainViewModel />
   </Design.DataContext>
 
-  <Grid RowDefinitions="42, *">
+  <Grid RowDefinitions="50, *">
     <Border Grid.Row="0" Background="#fff">
-      <StackPanel Orientation="Horizontal">
-            <TextBlock Margin="10 0 10 0" FontWeight="Medium" FontSize="23" VerticalAlignment="Center" FontFamily="Robots" Foreground="#000">Perpustakaan</TextBlock>
-            <Button HorizontalAlignment="Left"
-                    Background="#fff"
-                    Foreground="#000"
-                    Width="32"
-                    Height="32"
-                    Margin="7 8"
-                    Command="{Binding TriggerPaneCommand}">
-              <PathIcon Height="11" Data="{StaticResource LineHorizontal3Regular}" Foreground="#000" />
-            </Button>
-      </StackPanel>
+      <Grid ColumnDefinitions="Auto,Auto,*" >
+            <Panel Background="#000" Grid.Column="0" Width="55" Height="50">
+              <Button Background="Transparent"
+                      Width="32"
+                      Height="32"
+                      HorizontalAlignment="Center" VerticalAlignment="Center"
+                      Command="{Binding TriggerPaneCommand}">
+                <PathIcon Height="15" Data="{StaticResource LineHorizontal3Regular}" Foreground="#fff" />
+              </Button>
+            </Panel>
+            <TextBlock Grid.Column="1" Margin="10 0 10 0" FontWeight="Medium" FontSize="23" VerticalAlignment="Center" FontFamily="Robots" Foreground="#000">Library Management</TextBlock>
+      </Grid>
     </Border>
     <SplitView IsPaneOpen="{Binding IsPaneOpen}"
-              CompactPaneLength="45"
+              CompactPaneLength="55"
               DisplayMode="CompactInline"
               OpenPaneLength="210"
               Background="#fff"
               PaneBackground="#fff"
-              Grid.Row="1" >
+              Grid.Row="1">
       <SplitView.Pane>
-          <Border Background="#632ed0" CornerRadius="0 10 0 0">
-            <StackPanel Spacing="17" Orientation="Vertical">
-              <ListBox Margin="2 10 -100 0" Padding="0" ItemsSource="{Binding Items}"
-                        SelectedItem="{Binding SelectedListPage}" Background="Transparent">
-                <ListBox.Styles>
-                  <Style Selector="ListBoxItem">
-                    <Setter Property="Padding" Value="12 8"></Setter>
-                  </Style>
-                </ListBox.Styles>
-                <ListBox.ItemTemplate>
-                    <DataTemplate DataType="{x:Type models:ListPageTemplate}">
-                      <StackPanel Spacing="17" Orientation="Horizontal">
-                          <PathIcon Data="{Binding ListPageIcon}"
-                                    Width="14" Foreground="#fff" />
-                          <TextBlock Text="{Binding Label}" Foreground="#fff" />
-                      </StackPanel>
-                    </DataTemplate>
-                </ListBox.ItemTemplate>
-              </ListBox>
+          <Border Background="#fff">
+            <StackPanel Orientation="Vertical">   
+              <Image Margin="0 3 0 3" Height="150" Width="150" 
+                    Stretch="UniformToFill" HorizontalAlignment="Center"
+                    Source="avares://Perpustakaan/Assets/books.png"/>
+              <StackPanel Orientation="Vertical" Margin="10 0 0 0">
+                <ListBox Margin="2 10 -100 0" Padding="0" ItemsSource="{Binding Items}"
+                          SelectedItem="{Binding SelectedListPage}" Background="Transparent">
+                  <ListBox.Styles>
+                    <Style Selector="ListBoxItem">
+                      <Setter Property="Padding" Value="8 8"></Setter>
+                    </Style>
+                  </ListBox.Styles>
+                  <ListBox.ItemTemplate>
+                      <DataTemplate DataType="{x:Type models:ListPageTemplate}">
+                        <StackPanel Spacing="17" Orientation="Horizontal">
+                            <PathIcon Data="{Binding ListPageIcon}"
+                                      Width="18" Foreground="Black" />
+                            <TextBlock Text="{Binding Label}" Foreground="Black" />
+                        </StackPanel>
+                      </DataTemplate>
+                  </ListBox.ItemTemplate>
+                </ListBox>
+              </StackPanel>
             </StackPanel>
           </Border>
       </SplitView.Pane>
 
       <SplitView.Content>
-        <Border CornerRadius="12 0 0 0"
-                Background="#fff"
+        <Border Background="#E8EFF9"
                 Padding="23">
           <TransitioningContentControl Content="{Binding CurrentPage}" />
         </Border>
