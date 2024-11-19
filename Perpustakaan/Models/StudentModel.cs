@@ -1,16 +1,28 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;
+
 
 namespace Perpustakaan.Models;
 
+
+[Index(nameof(NIS), IsUnique = true)]
 public class StudentModel
 {
     [Key]
-    public string? NIS { get; set; }
-    public string? Name { get; set; }
-    public string? Class { get; set; } 
-    public string? Address { get; set; }
-    public int Phone { get; set; } 
+    public string? Student_Id { get; set; }
 
-    public ICollection<BorrowBookModel>? BorrowBooks { get; set; }
+    public int User_Id { get; set; } // Foreign Key
+
+    public UserModel? User { get; set; }
+
+    [MaxLength(20)]
+    public string? NIS { get; set; }
+
+    [MaxLength(15)]
+    public string? Class { get; set; }
+    
+    [Column(TypeName = "text")]
+    public string? Address { get; set; }
 }

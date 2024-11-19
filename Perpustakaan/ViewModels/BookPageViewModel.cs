@@ -1,42 +1,198 @@
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Threading.Tasks;
+using CommunityToolkit.Mvvm.ComponentModel;
+using CommunityToolkit.Mvvm.Input;
+using Microsoft.EntityFrameworkCore;
 using Perpustakaan.Models;
+using Perpustakaan.Services;
 
 namespace Perpustakaan.ViewModels;
 
-public class BookPageViewModel : ViewModelBase 
+public partial class BookPageViewModel : ViewModelBase 
 { 
-    public ObservableCollection<Book> Books { get; }
+    [ObservableProperty]
+    private bool _isPaneOpen;
+
+    [RelayCommand]
+    private void TriggerPane()
+    {
+        IsPaneOpen = !IsPaneOpen;
+    }
+
+    [ObservableProperty]
+    private string? _title;
+    [ObservableProperty]
+    private string? _author;
+    [ObservableProperty]
+    private string? _publisher;
+    [ObservableProperty]
+    private int _year;
+    [ObservableProperty]
+    private int _stock;
+    [ObservableProperty]
+
+    private BookModel? _selectedBook;
+    public ObservableCollection<BookModel> Books { get; } = [];
+
+    public IAsyncRelayCommand SaveBookCommand { get; }
+    public IAsyncRelayCommand UpdateBookCommand { get; }
+    public IAsyncRelayCommand DeleteBookCommand { get; }
+    public IAsyncRelayCommand LoadBooksCommand { get; }
 
     public BookPageViewModel()
     {
-        var people = new List<Book> 
-        {
-            new(1, "Abdu", "makan","makan", 1020, 10),
-            new(2, "Budi", "makan","makan", 1020, 10),
-            new(3, "Juni", "makan","makan", 1020, 10),
-            new(4, "Kayla", "makan","makan", 1020, 10),
-            new(5, "Soni", "makan","makan", 1020, 10),
-            new(6, "Makala", "makan","makan", 1020, 10),
-            new(7, "Joni", "makan","makan", 1020, 10),
-            new(8, "Kyu", "makan","makan", 1020, 10),
-            new(9, "Ryu", "makan","makan", 1020, 10),
-            new(10, "Soi", "makan","makan", 1020, 10),
-        };
-        Books = [.. people];
+        SaveBookCommand = new AsyncRelayCommand(SaveBook);
+        UpdateBookCommand = new AsyncRelayCommand(UpdateBook);
+        DeleteBookCommand = new AsyncRelayCommand(DeleteBook);
+        LoadBooksCommand = new AsyncRelayCommand(LoadBooks);
 
-        // Debug jumlah item
-        Console.WriteLine($"Jumlah item di Books: {Books.Count}");
+        _ = LoadBooks();
     }
-}
 
-public class Book(int id, string title, string author, string publisher, int year, int stock)
-{
-    public int BookId { get; set; } = id;
-    public string? Title { get; set; } = title;
-    public string? Author { get; set; } = author;
-    public string? Publisher { get; set; } = publisher;
-    public int Year { get; set; } = year;
-    public int Stock { get; set; } = stock;
+    private async Task LoadBooks()
+    {
+        try
+        {
+            using var db = new DatabaseService();
+            if (db?.Books != null)
+            {
+                Books.Clear();
+                var books = await db.Books.ToListAsync();
+
+                foreach (var book in books)
+                {
+                    Books.Add(book);
+                }
+            }
+            else
+            {
+                Console.WriteLine("Database or Books DbSet is null.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error loading books: {ex.Message}");
+        }
+    }
+
+    private async Task SaveBook()
+    {
+        if (string.IsNullOrWhiteSpace(Title) || Year <= 0 || Stock < 0)
+        {
+            Console.WriteLine("Invalid input");
+            return;
+        }
+
+        var book = new BookModel
+        {
+            Title = Title,
+            Author = Author,
+            Publisher = Publisher,
+            Year = Year,
+            Stock = Stock
+        };
+
+
+
+        try
+        {
+            using var db = new DatabaseService();
+            if (db?.Books != null)
+            {
+                await db.Books.AddAsync(book);
+                await db.SaveChangesAsync();
+                Books.Add(book);
+
+                ResetFields();
+            }
+            else
+            {
+                Console.WriteLine("Database or Books DbSet is null.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error: {ex.Message}");
+        }
+    }
+
+    private async Task UpdateBook()
+    {
+        if (SelectedBook == null)
+        {
+            Console.WriteLine("No book selected for update.");
+            return;
+        }
+
+        try
+        {
+            using var db = new DatabaseService();
+            if (db?.Books != null)
+            {
+                var book = await db.Books.FindAsync(SelectedBook.Book_Id);
+                if (book != null)
+                {
+                    book.Title = Title;
+                    book.Author = Author;
+                    book.Publisher = Publisher;
+                    book.Year = Year;
+                    book.Stock = Stock;
+
+                    await db.SaveChangesAsync();
+                    await LoadBooks();
+                    Console.WriteLine("Book updated successfully!");
+                }
+            }
+            else
+            {
+                Console.WriteLine("Database or Books DbSet is null.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error updating book: {ex.Message}");
+        }
+    }
+
+    private async Task DeleteBook()
+    {
+        if (SelectedBook == null)
+        {
+            Console.WriteLine("No book selected for deletion.");
+            return;
+        }
+
+        try
+        {
+            using var db = new DatabaseService();
+            if (db?.Books != null)
+            {
+                db.Books.Remove(SelectedBook);
+                await db.SaveChangesAsync();
+                Books.Remove(SelectedBook);
+                ResetFields();
+                Console.WriteLine("Book deleted successfully!");
+            }
+            else
+            {
+                Console.WriteLine("Database or Books DbSet is null.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error deleting book: {ex.Message}");
+        }
+    }
+
+    private void ResetFields()
+    {
+        Title = string.Empty;
+        Author = string.Empty;
+        Publisher = string.Empty;
+        Year = 0;
+        Stock = 0;
+        SelectedBook = null;
+    }
 }

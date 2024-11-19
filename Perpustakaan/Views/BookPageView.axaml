@@ -6,59 +6,107 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Perpustakaan.Views.BookPageView"
              x:DataType="vm:BookPageViewModel">
-    <Grid RowDefinitions="Auto,Auto,Auto,Auto">
-      <TextBlock Grid.Row="0" FontSize="35" FontWeight="SemiBold" Foreground="#000">Book Data Page</TextBlock>
 
-      <Grid Grid.Row="1" Margin="0 23 0 23">
-        <Grid.ColumnDefinitions>
-            <ColumnDefinition Width="Auto" />
-            <ColumnDefinition Width="*" />
-            <ColumnDefinition Width="Auto" />
-        </Grid.ColumnDefinitions>
+        <SplitView IsPaneOpen="{Binding IsPaneOpen}"
+              CompactPaneLength="0"
+              DisplayMode="Overlay"
+              OpenPaneLength="510"
+              PanePlacement="Right"
+              Background="Transparent"
+              PaneBackground="#fff"
+              Grid.Row="1">
+          <SplitView.Content>
+            <Grid RowDefinitions="Auto,Auto,Auto,Auto">
+              <TextBlock Grid.Row="0" FontSize="35" FontWeight="SemiBold" Foreground="#000">Book Data Page</TextBlock>
 
-        <TextBox Grid.Column="0" Watermark="Search title ..." Width="130" />
-        <Button Grid.Column="1" Content="Search" Background="Blue" Foreground="White" Padding="7" Margin="20 0 0 0"/>
-        <Button Grid.Column="2" Content="Create" Background="Green" Foreground="White" Padding="7" />
-      </Grid>
+              <Grid Grid.Row="1" Margin="0 23 0 23">
+                <Grid.ColumnDefinitions>
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="*" />
+                    <ColumnDefinition Width="Auto" />
+                    <ColumnDefinition Width="Auto" />                    
+                    <ColumnDefinition Width="Auto" />
+                </Grid.ColumnDefinitions>
 
-      <DataGrid Grid.Row="2" GridLinesVisibility="All" AutoGenerateColumns="False"
-                ItemsSource="{Binding Books}" BorderThickness="2 0 2 0" BorderBrush="Black" CornerRadius="3"
-                IsReadOnly="True" HorizontalGridLinesBrush="Black" VerticalGridLinesBrush="Black"
-                CanUserReorderColumns="False" Foreground="Black"
-                CanUserResizeColumns="False">
+                <TextBox Grid.Column="0" Watermark="Search title ..." Width="130" />
+                <Button Grid.Column="1" Content="Search" Background="Blue" Foreground="White" Padding="7" Margin="20 0 0 0"/>
+                <Button Grid.Column="3" Content="Delete" Background="#FF2C2C" Foreground="White" Padding="7" Command="{Binding DeleteBookCommand}" />
+                <Button Grid.Column="4" Content="Create/Edit" Background="Green" Foreground="White" Padding="7" Command="{Binding TriggerPaneCommand}" />
+              </Grid>
 
-        <DataGrid.Columns>
-          <!-- <DataGridCheckBoxColumn Width="Auto" CanUserResize="False">
-            <DataGridCheckBoxColumn.HeaderTemplate>
-              <DataTemplate>
-                <CheckBox Foreground="#000" />
-              </DataTemplate>
-            </DataGridCheckBoxColumn.HeaderTemplate>  
-          </DataGridCheckBoxColumn> -->
+              <DataGrid Grid.Row="2" GridLinesVisibility="All" AutoGenerateColumns="False"
+                        ItemsSource="{Binding Books}" BorderThickness="2 0 2 0" BorderBrush="Black" CornerRadius="3"
+                        IsReadOnly="True" HorizontalGridLinesBrush="Black" VerticalGridLinesBrush="Black"
+                        CanUserReorderColumns="False" Foreground="Black"
+                        CanUserResizeColumns="False" SelectedItem="{Binding SelectedBook}">
 
-          <DataGridTextColumn Header="Title" Binding="{Binding Title}" CanUserSort="True" Width="*" />
-          <DataGridTextColumn Header="Author" Binding="{Binding Author}" CanUserSort="True" Width="*" />
-          <DataGridTextColumn Header="Publisher" Binding="{Binding Publisher}" CanUserSort="True" Width="*" />
-          <DataGridTextColumn Header="Year" Binding="{Binding Year}" CanUserSort="True" Width="*" />
-          <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" CanUserSort="True" Width="*" />        
+                <DataGrid.Columns>
+                  <DataGridTextColumn Header="Title" Binding="{Binding Title}" CanUserSort="True" Width="*" />
+                  <DataGridTextColumn Header="Author" Binding="{Binding Author}" CanUserSort="True" Width="*" />
+                  <DataGridTextColumn Header="Publisher" Binding="{Binding Publisher}" CanUserSort="True" Width="*" />
+                  <DataGridTextColumn Header="Year" Binding="{Binding Year}" CanUserSort="True" Width="*" />
+                  <DataGridTextColumn Header="Stock" Binding="{Binding Stock}" CanUserSort="True" Width="*" />        
+                </DataGrid.Columns>
+                
+              </DataGrid>
+            </Grid>
+          </SplitView.Content>
 
-          <DataGridTemplateColumn Header="Operations" Width="Auto" >
-              <DataGridTemplateColumn.CellTemplate>
-                  <DataTemplate>
-                      <Grid ColumnDefinitions="*,*">
-                        <Button Grid.Column="0" Classes="gridEditButton" HorizontalAlignment="Center">
-                            <PathIcon Height="11" Data="{StaticResource EditRegular}" />
-                        </Button>
-                        <Button Grid.Column="1" Classes="gridRemoveButton" HorizontalAlignment="Center">
-                            <PathIcon Height="11" Data="{StaticResource DeleteRegular}" />  
-                        </Button>
-                      </Grid>
-                  </DataTemplate>
-              </DataGridTemplateColumn.CellTemplate>
-          </DataGridTemplateColumn>  
-        
-        </DataGrid.Columns>
-        
-      </DataGrid>
-    </Grid>
+          <SplitView.Pane>
+              <Border Background="#fff" Padding="10" CornerRadius="7">
+                <StackPanel Orientation="Vertical">
+                  <Button Content="X" Background="DarkGray" Foreground="White" Padding="7" Command="{Binding TriggerPaneCommand}" Margin="0 0 0 10" />
+                  <Grid Margin="20">
+                      <Grid.RowDefinitions>
+                          <RowDefinition Height="Auto"/>
+                          <RowDefinition Height="Auto"/>
+                          <RowDefinition Height="Auto"/>
+                          <RowDefinition Height="Auto"/>
+                          <RowDefinition Height="Auto"/>
+                          <RowDefinition Height="Auto"/>
+                      </Grid.RowDefinitions>
+
+                      <Grid.ColumnDefinitions>
+                          <ColumnDefinition Width="Auto"/>
+                          <ColumnDefinition Width="*"/>
+                      </Grid.ColumnDefinitions>
+
+                      <!-- Title Input -->
+                      <TextBlock Foreground="Black" Text="Title:" Grid.Row="0" Grid.Column="0" VerticalAlignment="Center" Margin="5"/>
+                      <TextBox BorderThickness="1" BorderBrush="LightBlue" Background="DarkGray" Foreground="White" Text="{Binding Title, UpdateSourceTrigger=PropertyChanged}" Grid.Row="0" Grid.Column="1" Margin="5"/>
+
+                      <!-- Author Input -->
+                      <TextBlock Foreground="Black" Text="Author:" Grid.Row="1" Grid.Column="0" VerticalAlignment="Center" Margin="5"/>
+                      <TextBox BorderThickness="1" BorderBrush="LightBlue" Background="DarkGray" Foreground="White" Text="{Binding Author, UpdateSourceTrigger=PropertyChanged}" Grid.Row="1" Grid.Column="1" Margin="5"/>
+
+                      <!-- Publisher Input -->
+                      <TextBlock Foreground="Black" Text="Publisher:" Grid.Row="2" Grid.Column="0" VerticalAlignment="Center" Margin="5"/>
+                      <TextBox BorderThickness="1" BorderBrush="LightBlue" Background="DarkGray" Foreground="White" Text="{Binding Publisher, UpdateSourceTrigger=PropertyChanged}" Grid.Row="2" Grid.Column="1" Margin="5"/>
+
+                      <!-- Year Input -->
+                      <TextBlock Foreground="Black" Text="Year:" Grid.Row="3" Grid.Column="0" VerticalAlignment="Center" Margin="5"/>
+                      <TextBox BorderThickness="1" BorderBrush="LightBlue" Background="DarkGray" Foreground="White" Text="{Binding Year, UpdateSourceTrigger=PropertyChanged}" Grid.Row="3" Grid.Column="1" Margin="5" />
+
+                      <!-- Stock Input -->
+                      <TextBlock Foreground="Black" Text="Stock:" Grid.Row="4" Grid.Column="0" VerticalAlignment="Center" Margin="5"/>
+                      <TextBox BorderThickness="1" BorderBrush="LightBlue" Background="DarkGray" Foreground="White" Text="{Binding Stock, UpdateSourceTrigger=PropertyChanged}" Grid.Row="4" Grid.Column="1" Margin="5"/>
+
+                      <!-- Save Button -->
+                      <StackPanel Orientation="Horizontal" Spacing="10" Grid.Row="5"
+                              Grid.ColumnSpan="2">
+                         <Button Content="Save Product"
+                              HorizontalAlignment="Center"
+                              Margin="10" Background="Blue" Foreground="White" Padding="7"
+                              Command="{Binding SaveBookCommand}"/>
+                         <Button Content="Update Product"
+                              HorizontalAlignment="Center"
+                              Margin="10" Background="Yellow" Foreground="White" Padding="7"
+                              Command="{Binding UpdateBookCommand}"/>
+                      </StackPanel>
+                      
+                  </Grid>
+                </StackPanel>
+              </Border>
+          </SplitView.Pane>
+    </SplitView>
 </UserControl>
