@@ -7,21 +7,15 @@
              x:Class="Perpustakaan.Views.HomePageView"
              x:DataType="vm:HomePageViewModel">
     <Panel>
-        <!-- Tombol Create di pojok kanan bawah -->
-        <Button Name="CreateButton" Content="Create" Width="100" Height="40" HorizontalAlignment="Right" VerticalAlignment="Bottom" Margin="10" Click="CreateButton_Click"/>
-
-        <!-- Popup Card Form -->
-        <Popup Name="FormPopup" IsLightDismissEnabled="True" HorizontalAlignment="Center" VerticalAlignment="Center">
-            <Border Background="#333" CornerRadius="10" Padding="20" Width="300" Height="250" BoxShadow="0 4 10 #00000080">
-                <StackPanel>
-                    <TextBlock Text="Create New Item" Foreground="White" FontWeight="Bold" FontSize="18" Margin="0,0,0,10"/>
-                    
-                    <!-- Form Input -->
-                    <!-- Tombol Submit -->
-                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right">
-                    </StackPanel>
-                </StackPanel>
+        <StackPanel>
+          <StackPanel.Styles>
+                <Style Selector="Border:pointerover">
+                <Setter Property="Background" Value="Red"/>
+                </Style>
+            </StackPanel.Styles>
+            <Border>
+                <TextBlock>I will have red background when hovered.</TextBlock>
             </Border>
-        </Popup>
+            </StackPanel>
     </Panel>
 </UserControl>

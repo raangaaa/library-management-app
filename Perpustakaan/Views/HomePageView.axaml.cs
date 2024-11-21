@@ -8,18 +8,4 @@ public partial class HomePageView : UserControl
     {
         InitializeComponent();
     }
-
-        private void CreateButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        {
-            FormPopup.IsOpen = true;
-        }
-
-        // Event handler untuk tombol Cancel
-        private void CancelButton_Click(object? sender, Avalonia.Interactivity.RoutedEventArgs e)
-        {
-            FormPopup.IsOpen = false;
-        }
-
-        // Event handler untuk tombol Submit
-
 }   

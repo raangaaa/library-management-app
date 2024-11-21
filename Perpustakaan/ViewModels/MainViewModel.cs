@@ -11,7 +11,6 @@ namespace Perpustakaan.ViewModels;
 
 public partial class MainViewModel : ViewModelBase
 {
-
     private readonly List<ListPageTemplate> _templates =
     [
         new ListPageTemplate(typeof(HomePageViewModel), "HomeRegular", "Home"),
@@ -20,10 +19,10 @@ public partial class MainViewModel : ViewModelBase
     ];
 
     [ObservableProperty]
-    private bool _isPaneOpen;
+    private bool _isPaneOpen = true;
 
     [ObservableProperty]
-    private ViewModelBase _currentPage = new BookPageViewModel();
+    private ViewModelBase _currentPage = new HomePageViewModel();
 
     [ObservableProperty]
     private ListPageTemplate? _selectedListPage;

@@ -6,7 +6,148 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="Perpustakaan.Views.StudentPageView"
              x:DataType="vm:StudentPageViewModel">
-    <TextBlock Margin="0 20" FontSize="20" FontWeight="Bold">
-      Student Page
-    </TextBlock>
+        <SplitView IsPaneOpen="{Binding IsPaneOpen}"
+              CompactPaneLength="0"
+              DisplayMode="Overlay"
+              OpenPaneLength="600"
+              PanePlacement="Right"
+              Background="Transparent"
+              PaneBackground="#fff"
+              Grid.Row="1">
+          <SplitView.Content>
+            <Border Padding="23">
+              <Grid RowDefinitions="Auto,Auto,Auto">
+                <TextBlock Grid.Row="0" FontSize="35" FontWeight="SemiBold" Foreground="#000">Student Data</TextBlock>
+
+                <Border Grid.Row="1" CornerRadius="3" Background="White" Padding="10" Margin="0 10 0 10">
+                  <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="Auto" />
+                        <ColumnDefinition Width="*" />
+                        <ColumnDefinition Width="Auto" />                    
+                        <ColumnDefinition Width="Auto" />
+                    </Grid.ColumnDefinitions>
+
+                    <TextBox Grid.Column="0" Watermark="Search title ..." Width="130" />
+                    <Button Grid.Column="1" Background="Blue" Foreground="White" Padding="7" Margin="20 0 0 0">
+                      <StackPanel Orientation="Horizontal" Spacing="15">
+                        <TextBlock>Search</TextBlock>
+                        <PathIcon Height="15" Data="{StaticResource SearchRegular}" Foreground="#fff" />  
+                      </StackPanel>
+                    </Button>
+                    <Button Grid.Column="2" Background="Blue"
+                            Width="35" Height="35" Margin="20 0 0 0"
+                            HorizontalAlignment="Left" VerticalAlignment="Center"
+                            Command="{Binding LoadStudentsCommand}">
+                      <PathIcon Height="15" Data="{StaticResource Reload}" Foreground="#fff" />
+                    </Button>
+                    <Button Grid.Column="3" Content="Delete" Background="#FF2C2C" Foreground="White" Padding="7" Command="{Binding DeleteStudentCommand}">
+                      <StackPanel Orientation="Horizontal" Spacing="15">
+                        <TextBlock>Delete</TextBlock>
+                        <PathIcon Height="15" Data="{StaticResource BookExclamationRegular}" Foreground="#fff" />
+                      </StackPanel>
+                    </Button>
+                    <Button Grid.Column="4" Content="Create/Edit" Background="Green" Foreground="White" Padding="7" Command="{Binding TriggerPaneCommand}" Margin="20 0 0 0">
+                      <StackPanel Orientation="Horizontal" Spacing="15">
+                        <TextBlock>Create / Edit</TextBlock>
+                        <PathIcon Height="15" Data="{StaticResource BookAddRegular}" Foreground="#fff" />
+                      </StackPanel>
+                    </Button>
+                  </Grid>
+                </Border>
+
+                <Border Grid.Row="2" CornerRadius="3" Background="White" Padding="10" Margin="0 10 0 10">
+                  <DataGrid AutoGenerateColumns="False"
+                            ItemsSource="{Binding Students}" CornerRadius="5"
+                            IsReadOnly="True"
+                            CanUserReorderColumns="False" Foreground="Black"
+                            CanUserResizeColumns="False" SelectedItem="{Binding SelectedStudent}">
+
+                    <DataGrid.Columns>
+                      <DataGridTextColumn Header="NIS" Binding="{Binding Student.NIS}" CanUserSort="True" Width="*" />
+                      <DataGridTextColumn Header="Name" Binding="{Binding Name}" CanUserSort="True" Width="*" />
+                      <DataGridTextColumn Header="Class" Binding="{Binding Student.Class}" CanUserSort="True" Width="*" />
+                      <DataGridTextColumn Header="Address" Binding="{Binding Student.Address}" CanUserSort="True" Width="*" />
+                      <DataGridTextColumn Header="Phone" Binding="{Binding Phone}" CanUserSort="True" Width="*"  />        
+                      <DataGridTextColumn Header="Email" Binding="{Binding Email}" CanUserSort="True" Width="*"  />        
+                    </DataGrid.Columns>
+                    
+                  </DataGrid>
+                </Border>
+              </Grid>    
+            </Border>
+          </SplitView.Content>
+
+          <SplitView.Pane>
+              <Border Background="#FFF" Padding="10">
+                <StackPanel Orientation="Vertical">
+                  <Button Grid.Column="2" Background="Blue"
+                            Width="35"
+                            Height="35"
+                            HorizontalAlignment="Left" VerticalAlignment="Center"
+                            Command="{Binding TriggerPaneCommand}">
+                      <PathIcon Height="15" Data="{StaticResource Dissmis}" Foreground="#fff" />
+                  </Button>
+                  <Grid Margin="20" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
+
+                      <!-- Username, Password Input -->
+                      <Grid Grid.Row="0" RowDefinitions="*,*" ColumnDefinitions="*,*">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Foreground="Black" Text="Username:" HorizontalAlignment="Left" Margin="5 0 0 0"/>
+                        <TextBox Grid.Row="1" Grid.Column="0" AcceptsReturn="False" BorderThickness="2" BorderBrush="Blue" Background="LightBlue" Foreground="White" Text="{Binding Username, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+
+                        <TextBlock Grid.Row="0" Grid.Column="1" Foreground="Black" Text="Password:" HorizontalAlignment="Left" Margin="5 0 0 0"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" AcceptsReturn="False" BorderThickness="2" BorderBrush="Blue" Background="LightBlue" Foreground="White" Text="{Binding Password, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                      </Grid>
+
+                      <!-- Phone, Email Input -->
+                      <Grid Grid.Row="1" RowDefinitions="*,*" ColumnDefinitions="*,*">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Foreground="Black" Text="Phone:" HorizontalAlignment="Left" Margin="5 0 0 0"/>
+                        <TextBox Grid.Row="1" Grid.Column="0" AcceptsReturn="False" BorderThickness="2" BorderBrush="Blue" Background="LightBlue" Foreground="White" Text="{Binding Phone, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+
+                        <TextBlock Grid.Row="0" Grid.Column="1" Foreground="Black" Text="Email:" HorizontalAlignment="Left" Margin="5 0 0 0"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" AcceptsReturn="False" BorderThickness="2" BorderBrush="Blue" Background="LightBlue" Foreground="White" Text="{Binding Email, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                      </Grid>
+
+                      <!-- NIS, Name Input -->
+                      <Grid Grid.Row="2" RowDefinitions="*,*" ColumnDefinitions="*,*">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Foreground="Black" Text="NIS:" HorizontalAlignment="Left" Margin="5 0 0 0"/>
+                        <TextBox Grid.Row="1" Grid.Column="0" AcceptsReturn="False" BorderThickness="2" BorderBrush="Blue" Background="LightBlue" Foreground="White" Text="{Binding Nis, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+
+                        <TextBlock Grid.Row="0" Grid.Column="1" Foreground="Black" Text="Name:" HorizontalAlignment="Left" Margin="5 0 0 0"/>
+                        <TextBox Grid.Row="1" Grid.Column="1" AcceptsReturn="False" BorderThickness="2" BorderBrush="Blue" Background="LightBlue" Foreground="White" Text="{Binding Name, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                      </Grid>
+
+                      <!-- Class, Address Input -->
+                      <Grid Grid.Row="3" RowDefinitions="*,*,*" ColumnDefinitions="*,*,2*">
+                        <TextBlock Grid.Row="0" Grid.Column="0" Grid.ColumnSpan="2" Foreground="Black" Text="Class:" HorizontalAlignment="Left" Margin="5 0 0 0"/>
+                        <TextBox Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2" AcceptsReturn="False" BorderThickness="2" BorderBrush="Blue" Background="LightBlue" Foreground="White" Text="{Binding Class, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+
+                        <Button Content="Save" Grid.Row="2" Grid.Column="0"
+                                HorizontalAlignment="Center"
+                                Margin="10" Background="Blue" Foreground="White" Padding="7"
+                                Command="{Binding SaveStudentCommand}" />
+                         <Button Content="Update" Grid.Row="2" Grid.Column="1"
+                              HorizontalAlignment="Center"
+                              Margin="10" Background="Yellow" Foreground="White" Padding="7"
+                              Command="{Binding UpdateStudentCommand}"/>
+
+                        <TextBlock Grid.Row="0" Grid.Column="2" Foreground="Black" Text="Address:" HorizontalAlignment="Left" Margin="5 0 0 0"/>
+                        <TextBox Grid.Row="1" Grid.Column="2" Grid.RowSpan="2" Height="100" TextWrapping="Wrap"  AcceptsReturn="False" BorderThickness="2" BorderBrush="Blue" Background="LightBlue" Foreground="White" Text="{Binding Address, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
+                      </Grid>
+                  </Grid>
+
+                  <StackPanel Margin="5 20">
+                    <ItemsControl ItemsSource="{Binding Errors}" >
+                      <ItemsControl.ItemTemplate>
+                        <DataTemplate>
+                          <TextBlock Text="{Binding}" Foreground="Red" />
+                        </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                      </ItemsControl>
+                  </StackPanel>
+                </StackPanel>
+              </Border>
+          </SplitView.Pane>
+        </SplitView>
 </UserControl>

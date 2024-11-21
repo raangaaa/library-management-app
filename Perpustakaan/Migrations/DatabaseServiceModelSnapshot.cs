@@ -31,10 +31,12 @@ namespace Perpustakaan.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Book_Id"));
 
                     b.Property<string>("Author")
+                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("Publisher")
+                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
@@ -42,6 +44,7 @@ namespace Perpustakaan.Migrations
                         .HasColumnType("int");
 
                     b.Property<string>("Title")
+                        .IsRequired()
                         .HasMaxLength(30)
                         .HasColumnType("nvarchar(30)");
 
@@ -145,13 +148,16 @@ namespace Perpustakaan.Migrations
                         .HasColumnType("nvarchar(450)");
 
                     b.Property<string>("Address")
+                        .IsRequired()
                         .HasColumnType("text");
 
                     b.Property<string>("Class")
+                        .IsRequired()
                         .HasMaxLength(15)
                         .HasColumnType("nvarchar(15)");
 
                     b.Property<string>("NIS")
+                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 
@@ -161,8 +167,7 @@ namespace Perpustakaan.Migrations
                     b.HasKey("Student_Id");
 
                     b.HasIndex("NIS")
-                        .IsUnique()
-                        .HasFilter("[NIS] IS NOT NULL");
+                        .IsUnique();
 
                     b.HasIndex("User_Id")
                         .IsUnique();
@@ -179,26 +184,31 @@ namespace Perpustakaan.Migrations
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("User_Id"));
 
                     b.Property<string>("Email")
+                        .IsRequired()
                         .HasMaxLength(25)
                         .HasColumnType("nvarchar(25)");
 
                     b.Property<string>("Name")
+                        .IsRequired()
                         .HasMaxLength(25)
                         .HasColumnType("nvarchar(25)");
 
-                    b.Property<string>("No_Telp")
-                        .HasMaxLength(15)
-                        .HasColumnType("nvarchar(15)");
-
                     b.Property<string>("Password")
+                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
+
+                    b.Property<string>("Phone")
+                        .IsRequired()
+                        .HasMaxLength(15)
+                        .HasColumnType("nvarchar(15)");
 
                     b.Property<string>("Role")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Username")
+                        .IsRequired()
                         .HasMaxLength(20)
                         .HasColumnType("nvarchar(20)");
 

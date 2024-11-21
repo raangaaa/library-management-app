@@ -1,6 +1,6 @@
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using FluentValidation;
 using Microsoft.EntityFrameworkCore;
 
 
@@ -17,12 +17,22 @@ public class StudentModel
 
     public UserModel? User { get; set; }
 
-    [MaxLength(20)]
+    [Required, MaxLength(20)]
     public string? NIS { get; set; }
 
-    [MaxLength(15)]
+    [Required, MaxLength(15)]
     public string? Class { get; set; }
     
-    [Column(TypeName = "text")]
+    [Required, Column(TypeName = "text")]
     public string? Address { get; set; }
+}
+
+public class StudentModelValidator : AbstractValidator<StudentModel>
+{
+    public StudentModelValidator()
+    {
+        RuleFor(s => s.NIS).NotEmpty().MaximumLength(20);
+        RuleFor(s => s.Class).NotEmpty().MaximumLength(15);
+        RuleFor(s => s.Address).NotEmpty();
+    }
 }

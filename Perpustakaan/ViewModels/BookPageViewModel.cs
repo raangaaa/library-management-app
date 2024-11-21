@@ -1,5 +1,5 @@
 using System;
-using System.Collections.Generic;
+using System.Linq;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -7,6 +7,8 @@ using CommunityToolkit.Mvvm.Input;
 using Microsoft.EntityFrameworkCore;
 using Perpustakaan.Models;
 using Perpustakaan.Services;
+using Perpustakaan.Views;
+using Avalonia.Controls.ApplicationLifetimes;
 
 namespace Perpustakaan.ViewModels;
 
@@ -31,10 +33,11 @@ public partial class BookPageViewModel : ViewModelBase
     private int _year;
     [ObservableProperty]
     private int _stock;
-    [ObservableProperty]
 
+    [ObservableProperty]
     private BookModel? _selectedBook;
     public ObservableCollection<BookModel> Books { get; } = [];
+    public ObservableCollection<string> Errors { get; } = [];
 
     public IAsyncRelayCommand SaveBookCommand { get; }
     public IAsyncRelayCommand UpdateBookCommand { get; }
@@ -73,17 +76,15 @@ public partial class BookPageViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error loading books: {ex.Message}");
+            Errors.Clear();
+            Errors.Add($"Error loading books: {ex.Message}");
         }
     }
 
     private async Task SaveBook()
     {
-        if (string.IsNullOrWhiteSpace(Title) || Year <= 0 || Stock < 0)
-        {
-            Console.WriteLine("Invalid input");
-            return;
-        }
+        var lifetime = Avalonia.Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+        var window = lifetime?.Windows?.FirstOrDefault(x => x is MainWindow) as MainWindow;
 
         var book = new BookModel
         {
@@ -94,7 +95,18 @@ public partial class BookPageViewModel : ViewModelBase
             Stock = Stock
         };
 
+        var validatorBook = new BookModelValidator();
+        var results = validatorBook.Validate(book);
 
+        if (!results.IsValid)
+        {
+            Errors.Clear();
+            foreach (var failure in results.Errors)
+            {
+                Errors.Add($"Column {failure.PropertyName} failed validation. Error: {failure.ErrorMessage}");
+            }
+            return;
+        }
 
         try
         {
@@ -106,6 +118,8 @@ public partial class BookPageViewModel : ViewModelBase
                 Books.Add(book);
 
                 ResetFields();
+
+                window?.NotificationService.Show("Success", "New book successfully added!");
             }
             else
             {
@@ -114,15 +128,41 @@ public partial class BookPageViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error: {ex.Message}");
+            Errors.Clear();
+            Errors.Add($"Error: {ex.Message}");
         }
     }
 
     private async Task UpdateBook()
     {
+        var lifetime = Avalonia.Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+        var window = lifetime?.Windows?.FirstOrDefault(x => x is MainWindow) as MainWindow;
+
         if (SelectedBook == null)
         {
-            Console.WriteLine("No book selected for update.");
+            window?.NotificationService.Show("Error", "No book selected for update!");
+            return;
+        }
+
+        var editBook = new BookModel
+        {
+            Title = Title,
+            Author = Author,
+            Publisher = Publisher,
+            Year = Year,
+            Stock = Stock
+        };
+
+        var validatorBook = new BookModelValidator();
+        var results = validatorBook.Validate(editBook);
+
+        if (!results.IsValid)
+        {
+            Errors.Clear();
+            foreach (var failure in results.Errors)
+            {
+                Errors.Add($"Column {failure.PropertyName} failed validation. Error: {failure.ErrorMessage}");
+            }
             return;
         }
 
@@ -142,7 +182,8 @@ public partial class BookPageViewModel : ViewModelBase
 
                     await db.SaveChangesAsync();
                     await LoadBooks();
-                    Console.WriteLine("Book updated successfully!");
+
+                    window?.NotificationService.Show("Update", "Selected book successfully updated!");
                 }
             }
             else
@@ -152,15 +193,19 @@ public partial class BookPageViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error updating book: {ex.Message}");
+            Errors.Clear();
+            Errors.Add($"Error updating book: {ex.Message}");
         }
     }
 
     private async Task DeleteBook()
     {
+        var lifetime = Avalonia.Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+        var window = lifetime?.Windows?.FirstOrDefault(x => x is MainWindow) as MainWindow;
+        
         if (SelectedBook == null)
         {
-            Console.WriteLine("No book selected for deletion.");
+            window?.NotificationService.Show("Error", "No book selected for delete!");
             return;
         }
 
@@ -173,7 +218,8 @@ public partial class BookPageViewModel : ViewModelBase
                 await db.SaveChangesAsync();
                 Books.Remove(SelectedBook);
                 ResetFields();
-                Console.WriteLine("Book deleted successfully!");
+
+                window?.NotificationService.Show("Delete", "Selected book deleted!");
             }
             else
             {
@@ -182,8 +228,25 @@ public partial class BookPageViewModel : ViewModelBase
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Error deleting book: {ex.Message}");
+            Errors.Clear();
+            Errors.Add($"Error deleting book: {ex.Message}");
         }
+    }
+
+
+
+    partial void OnSelectedBookChanged(BookModel? value)
+    {
+        EditFields();
+    }
+
+    private void EditFields()
+    {
+        Title = SelectedBook?.Title;
+        Author = SelectedBook?.Author;
+        Publisher = SelectedBook?.Publisher;
+        Year = SelectedBook?.Year ?? 0;
+        Stock = SelectedBook?.Stock ?? 0;
     }
 
     private void ResetFields()

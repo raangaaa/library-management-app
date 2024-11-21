@@ -17,9 +17,9 @@ namespace Perpustakaan.Migrations
                 {
                     Book_Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Title = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: true),
-                    Author = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    Publisher = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
+                    Title = table.Column<string>(type: "nvarchar(30)", maxLength: 30, nullable: false),
+                    Author = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Publisher = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
                     Year = table.Column<int>(type: "int", nullable: false),
                     Stock = table.Column<int>(type: "int", nullable: false)
                 },
@@ -34,12 +34,12 @@ namespace Perpustakaan.Migrations
                 {
                     User_Id = table.Column<int>(type: "int", nullable: false)
                         .Annotation("SqlServer:Identity", "1, 1"),
-                    Name = table.Column<string>(type: "nvarchar(25)", maxLength: 25, nullable: true),
+                    Name = table.Column<string>(type: "nvarchar(25)", maxLength: 25, nullable: false),
                     Role = table.Column<string>(type: "nvarchar(max)", nullable: false),
-                    Email = table.Column<string>(type: "nvarchar(25)", maxLength: 25, nullable: true),
-                    No_Telp = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: true),
-                    Username = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    Password = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true)
+                    Email = table.Column<string>(type: "nvarchar(25)", maxLength: 25, nullable: false),
+                    Phone = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: false),
+                    Username = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Password = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false)
                 },
                 constraints: table =>
                 {
@@ -75,9 +75,9 @@ namespace Perpustakaan.Migrations
                 {
                     Student_Id = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     User_Id = table.Column<int>(type: "int", nullable: false),
-                    NIS = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: true),
-                    Class = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: true),
-                    Address = table.Column<string>(type: "text", nullable: true)
+                    NIS = table.Column<string>(type: "nvarchar(20)", maxLength: 20, nullable: false),
+                    Class = table.Column<string>(type: "nvarchar(15)", maxLength: 15, nullable: false),
+                    Address = table.Column<string>(type: "text", nullable: false)
                 },
                 constraints: table =>
                 {
@@ -174,8 +174,7 @@ namespace Perpustakaan.Migrations
                 name: "IX_Students_NIS",
                 table: "Students",
                 column: "NIS",
-                unique: true,
-                filter: "[NIS] IS NOT NULL");
+                unique: true);
 
             migrationBuilder.CreateIndex(
                 name: "IX_Students_User_Id",

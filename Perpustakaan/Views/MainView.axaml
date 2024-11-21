@@ -27,7 +27,7 @@
       </Grid>
     </Border>
     <SplitView IsPaneOpen="{Binding IsPaneOpen}"
-              CompactPaneLength="55"
+              CompactPaneLength="0"
               DisplayMode="CompactInline"
               OpenPaneLength="210"
               Background="#fff"
@@ -40,7 +40,7 @@
                     Stretch="UniformToFill" HorizontalAlignment="Center"
                     Source="avares://Perpustakaan/Assets/books.png"/>
               <StackPanel Orientation="Vertical" Margin="10 0 0 0">
-                <ListBox Margin="2 10 -100 0" Padding="0" ItemsSource="{Binding Items}"
+                <ListBox Margin="2 10 -100 0" ItemsSource="{Binding Items}"
                           SelectedItem="{Binding SelectedListPage}" Background="Transparent">
                   <ListBox.Styles>
                     <Style Selector="ListBoxItem">
@@ -49,7 +49,7 @@
                   </ListBox.Styles>
                   <ListBox.ItemTemplate>
                       <DataTemplate DataType="{x:Type models:ListPageTemplate}">
-                        <StackPanel Spacing="17" Orientation="Horizontal">
+                        <StackPanel Spacing="17" Orientation="Horizontal" Margin="0 0 0 10">
                             <PathIcon Data="{Binding ListPageIcon}"
                                       Width="18" Foreground="Black" />
                             <TextBlock Text="{Binding Label}" Foreground="Black" />
@@ -63,8 +63,7 @@
       </SplitView.Pane>
 
       <SplitView.Content>
-        <Border Background="#E8EFF9"
-                Padding="23">
+        <Border Background="#E8EFF9">
           <TransitioningContentControl Content="{Binding CurrentPage}" />
         </Border>
       </SplitView.Content>

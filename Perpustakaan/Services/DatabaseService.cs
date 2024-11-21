@@ -93,7 +93,7 @@ public class DatabaseService : DbContext
             .WithMany(b => b.Borrows)
             .HasForeignKey(p => p.User_Id);
 
-        // Many -> Many = Borrow and Book
+        // Many -> Many = Borrow and Book with BorrowBook
         modelBuilder.Entity<BorrowBookModel>()
             .HasOne(bb => bb.Borrow)
             .WithMany(b => b.BorrowBooks)
@@ -104,7 +104,7 @@ public class DatabaseService : DbContext
             .WithMany(b => b.BorrowBooks)
             .HasForeignKey(bb => bb.Book_Id);
 
-        // Many -> Many = Borrow and Book
+        // Many -> Many = Borrow and Book with Return
         modelBuilder.Entity<ReturnModel>()
             .HasOne(bb => bb.Borrow)
             .WithMany(b => b.Returns)

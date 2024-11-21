@@ -15,8 +15,7 @@ public class ReturnModel
     public int Book_Id { get; set; }
     public BookModel? Book { get; set; }
 
-    [DataType(DataType.Date)]  
-    [Column(TypeName = "date")]
+    [Required, Column(TypeName = "date"), DataType(DataType.Date)]
     public DateTime Return_Date { get; set; }
     public int Penalty { get; set; } 
 }
