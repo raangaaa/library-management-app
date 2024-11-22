@@ -135,7 +135,7 @@ public partial class StudentPageViewModel : ViewModelBase
 
                 ResetFields();
                 
-                window?.NotificationService.Show("Success", "Selected book successfully added!");
+                window?.NotificationService.Show("Success", "Student successfully added!");
             }
             else
             {
@@ -228,7 +228,7 @@ public partial class StudentPageViewModel : ViewModelBase
                     await db.SaveChangesAsync();
                     await LoadStudents();
 
-                    window?.NotificationService.Show("Update", "Selected book successfully updated!");
+                    window?.NotificationService.Show("Update", "Selected student successfully updated!");
                 }
                 else
                 {
@@ -274,7 +274,7 @@ public partial class StudentPageViewModel : ViewModelBase
                     Students.Remove(SelectedStudent);
                     ResetFields();
 
-                    window?.NotificationService.Show("Update", "Selected book was deleted!");
+                    window?.NotificationService.Show("Delete", "Selected student was deleted!");
                 } 
                 else
                 {
