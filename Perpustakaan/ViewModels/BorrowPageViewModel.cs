@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -27,12 +28,81 @@ public partial class BorrowPageViewModel : ViewModelBase
     [ObservableProperty]
     private string? _nis;
     [ObservableProperty]
-    private int _bookId;
+    private BookModel? _selectedBook;
+    [ObservableProperty]
+    private SelectedBooks? _selectedBookForDelete;
+    public ObservableCollection<SelectedBooks> SelectedBooks { get; } = [];
+    public List<BorrowBookModel> BorrowBooks { get; } = [];
+    public List<int> SelectedBookIds { get; } = [];
+    [RelayCommand]
+    public void AddSelectedBook()
+    {
+        if (SelectedBook == null)
+        {
+            Errors.Add("Please select a book first.");
+            return;
+        }
+
+        if (Amount <= 0)
+        {
+            Errors.Add("Please enter a valid amount.");
+            return;
+        }
+
+        if (Amount > 2)
+        {
+            Errors.Add("Max amount is 2.");
+            return;
+        }
+
+        if (SelectedBookIds.Contains(SelectedBook.Book_Id))
+        {
+            Errors.Add("This book is already added.");
+            return;
+        }
+
+        SelectedBooks.Add(new SelectedBooks { Book = SelectedBook, Amount = Amount});
+        BorrowBooks.Add(new BorrowBookModel { Book_Id = SelectedBook!.Book_Id, Borrow_Amount = Amount});
+        SelectedBookIds.Add(SelectedBook.Book_Id);
+        SelectedBook = null;
+        Amount = 0;
+        Errors.Clear();
+    }
+    [RelayCommand]
+    public void DeleteSelectedBook()
+    {
+        if (SelectedBookForDelete == null)
+        {
+            Errors.Add("Please select a book to remove.");
+            return;
+        }
+
+        if (SelectedBookForDelete.Book != null)
+        {
+            int bookIdToRemove = SelectedBookForDelete.Book.Book_Id;
+            var bookToRemove = BorrowBooks.FirstOrDefault(b => b.Book_Id == bookIdToRemove);
+
+            SelectedBookIds.Remove(bookIdToRemove);
+            BorrowBooks.Remove(bookToRemove!);
+            SelectedBooks.Remove(SelectedBookForDelete);
+        }
+        else
+        {
+            Console.WriteLine("SelectedBookForDelete or its Book is null.");
+        }
+
+        SelectedBookForDelete = null;
+        Errors.Clear();
+    }
     [ObservableProperty]
     private int _amount;
+    [ObservableProperty]
+    private int _loanDuration;
 
     [ObservableProperty]
     private BorrowModel? _selectedBorrow;
+
+
     public ObservableCollection<BorrowModel> Borrows { get; } = [];
     public ObservableCollection<BookModel> Books { get; } = [];
     public ObservableCollection<UserModel> Students { get; } = [];
@@ -52,8 +122,8 @@ public partial class BorrowPageViewModel : ViewModelBase
 
         _ = LoadBorrows();
         _ = LoadBooks();
-        _ = LoadStudents();
     }
+    
 
     private async Task LoadBorrows()
     {
@@ -74,6 +144,8 @@ public partial class BorrowPageViewModel : ViewModelBase
                 {
                     Borrows.Add(borrow);
                 }
+
+                Errors.Clear();
             }
             else
             {
@@ -93,37 +165,62 @@ public partial class BorrowPageViewModel : ViewModelBase
         var window = lifetime?.Windows?.FirstOrDefault(x => x is MainWindow) as MainWindow;
 
         var today = DateTime.Today;
-        var nextWeek = DateTime.Today.AddDays(7);
-        TimeSpan difference = nextWeek - today; 
+        var returnDate = today.AddDays(LoanDuration);
+
+        if (string.IsNullOrEmpty(Nis) && SelectedBooks.Count <= 0 && LoanDuration <= 0)
+        {
+            Errors.Add("Fill Nis or Duration and select book first");
+            return;
+        }
+
+        if (BorrowBooks.Count > 1)
+        {
+            foreach (var borrowBookMax2 in BorrowBooks)
+            {
+                if (borrowBookMax2.Borrow_Amount > 2)
+                {
+                    Errors.Add($"Book max request is 2 if you borrow grater than 2 book");
+                    return;
+                }
+            }
+        }
 
         try
         {
             using var db = new DatabaseService();
-            if (db?.Students != null && db?.Books != null && db?.Borrows != null && db?.BorrowBooks != null)
+            if (db?.Students != null && db?.Books != null && db?.Borrows != null)
             {
                 var student = await db.Students
                     .Include(s => s.User)
                     .FirstOrDefaultAsync(s => s.NIS == Nis);
 
-                var book = await db.Books
-                    .FirstOrDefaultAsync(s => s.Book_Id == BookId);
+                var bookExist = await db.Books
+                    .CountAsync(book => SelectedBookIds.Contains(book.Book_Id)) == SelectedBookIds.Count;
 
-                if (book == null && student == null)
+                if (bookExist && student == null)
                 {
                     Errors.Clear();
-                    Errors.Add("Student Nis or Book Id Not Found:");
+                    Errors.Add("Student Nis or Book Not Found:");
                     return;
                 }
 
                 // -----------------------------------------------------------
 
+                int totalPenalty = 0;
+
+                if (LoanDuration > 7)
+                {
+                    totalPenalty += (LoanDuration - 7) * 1000;
+                }
+
                 var borrow = new BorrowModel
                 {
                     User_Id = student!.User!.User_Id,
                     Borrow_Date = today,
-                    Return_Date = nextWeek,
-                    Loan_Duration = difference.Days,
-                    Penalty = 0
+                    Return_Date = returnDate,
+                    Loan_Duration = LoanDuration,
+                    Penalty = totalPenalty,
+                    BorrowBooks = BorrowBooks
                 };
 
                 var validatorBorrow = new BorrowModelValidator();
@@ -139,27 +236,43 @@ public partial class BorrowPageViewModel : ViewModelBase
                     return;
                 }
 
+                foreach (var borrowBook in borrow.BorrowBooks)
+                {
+                    var book = await db.Books
+                        .FirstOrDefaultAsync(b => b.Book_Id == borrowBook.Book_Id);
+
+                    if (book == null)
+                    {
+                        Errors.Add($"Book with ID {borrowBook.Book_Id} does not exist.");
+                        return;
+                    }
+
+                    if (borrowBook.Borrow_Amount > book.Stock)
+                    {
+                        Errors.Add($"Insufficient stock for book '{book.Title}'. Available stock: {book.Stock}, Requested: {borrowBook.Borrow_Amount}");
+                        return;
+                    }
+
+                    if (book != null)
+                    {
+                        book.Stock -= borrowBook.Borrow_Amount;
+                    }
+                }
+
                 // ------------------------------------------------------------
 
-                var borrowAfter = await db.Borrows.AddAsync(borrow);
+                await db.Borrows.AddAsync(borrow);
                 await db.SaveChangesAsync();
-                var borrowBook = new BorrowBookModel
-                {
-                    Borrow_Id = borrowAfter.Entity.Borrow_Id,
-                    Book_Id = BookId,
-                    Borrow_Amount = Amount,
-                };
-                await db.BorrowBooks.AddAsync(borrowBook);
-                await db.SaveChangesAsync();
-                Borrows.Add(borrow);
+                await LoadBorrows();
 
                 ResetFields();
+                Errors.Clear();
 
                 window?.NotificationService.Show("Success", "Borrow successfully created!");
             }
             else
             {
-                Console.WriteLine("Database or Borrows DbSet is null.");
+                Console.WriteLine("Database or DbSet is null.");
             }
         }
         catch (Exception ex)
@@ -177,9 +290,27 @@ public partial class BorrowPageViewModel : ViewModelBase
 
         if (SelectedBorrow == null)
         {
-            window?.NotificationService.Show("Error", "No student selected for update!");
+            window?.NotificationService.Show("Error", "No borrow data selected for update!");
             return;
         }
+
+        if (string.IsNullOrEmpty(Nis) && SelectedBooks.Count <= 0 && LoanDuration <= 0)
+        {
+            Errors.Add("Fill Nis or Duration and select book first");
+            return;
+        }
+
+        if (BorrowBooks.Count > 1)
+        {
+            foreach (var borrowBookMax2 in BorrowBooks)
+            {
+                if (borrowBookMax2.Borrow_Amount > 2)
+                {
+                    Errors.Add($"Book {borrowBookMax2!.Book!.Title} max request is 2 for all book");
+                }
+            }
+        }
+
 
         try
         {
@@ -190,42 +321,75 @@ public partial class BorrowPageViewModel : ViewModelBase
                     .Include(s => s.User)
                     .FirstOrDefaultAsync(s => s.NIS == Nis);
 
-                var book = await db.Books
-                    .FirstOrDefaultAsync(s => s.Book_Id == BookId);
+                var bookExist = await db.Books
+                    .CountAsync(book => SelectedBookIds.Contains(book.Book_Id)) == SelectedBookIds.Count;
 
-                if (book == null && student == null)
+                if (bookExist && student == null)
                 {
                     Errors.Clear();
-                    Errors.Add("Student Nis or Book Id Not Found:");
+                    Errors.Add("Student Nis or Book Not Found:");
                     return;
                 }
 
                 // -----------------------------------------------------------
 
                 var borrow = await db.Borrows
-                    .Include(b => b.User!)
-                        .ThenInclude(u => u.Student)
-                    .Include(b => b.BorrowBooks!)
-                        .ThenInclude(bb => bb.Book)
+                    .Include(bb => bb.BorrowBooks)
                     .FirstOrDefaultAsync(s => s.Borrow_Id == SelectedBorrow.Borrow_Id);
+                
 
-                var borrowBooks = await db.BorrowBooks
-                    .FirstOrDefaultAsync(s => s.Borrow_Id == SelectedBorrow.Borrow_Id);
-
-                if (borrow != null && borrowBooks != null)
+                if (borrow != null)
                 {
-                    borrow.User_Id = student!.User!.User_Id;   
-                    borrowBooks.Book_Id = book!.Book_Id;
-                    borrowBooks.Borrow_Amount = Amount;
+                    foreach (var borrowBook in borrow!.BorrowBooks!)
+                    {
+                        var book = await db.Books
+                            .FirstOrDefaultAsync(b => b.Book_Id == borrowBook.Book_Id);
+                        
+                        if (book != null)
+                        {
+                            book.Stock += borrowBook.Borrow_Amount;
+                        }
+                    }
+
+                    borrow.User_Id = student!.User!.User_Id;
+                    borrow.Return_Date = borrow.Borrow_Date.AddDays(LoanDuration);
+                    borrow.BorrowBooks = BorrowBooks;
+
+                    foreach (var borrowBook in BorrowBooks)
+                    {
+                        var book = await db.Books
+                                        .FirstOrDefaultAsync(b => b.Book_Id == borrowBook.Book_Id);
+
+                        if (book == null)
+                        {
+                            Errors.Add($"Book with ID {borrowBook.Book_Id} does not exist.");
+                            return;
+                        }
+
+                        if (borrowBook.Borrow_Amount > book.Stock)
+                        {
+                            Errors.Add($"Insufficient stock for book '{book.Title}'. Available stock: {book.Stock}, Requested: {borrowBook.Borrow_Amount}");
+                            return;
+                        }
+
+                        if (book != null)
+                        {
+                            book.Stock -= borrowBook.Borrow_Amount;
+                        }
+                    }
 
                     await db.SaveChangesAsync();
                     await LoadBorrows();
+
+                    ResetFields();
+                    Errors.Clear();
 
                     window?.NotificationService.Show("Update", "Selected borrow successfully updated!");
                 }
                 else
                 {
-                    window?.NotificationService.Show("Error", "Borrow not found!");
+                    Errors.Add("Borrow not found!");
+                    return;
                 }
             }
             else
@@ -254,24 +418,51 @@ public partial class BorrowPageViewModel : ViewModelBase
         try
         {
             using var db = new DatabaseService();
-            if (db.Borrows != null)
+            if (db.Borrows != null && db.Return != null && db.Books != null)
             {
                 var borrow = await db.Borrows
-                    .Include(b => b.BorrowBooks)
+                    .Include(bb => bb.BorrowBooks)
                     .FirstOrDefaultAsync(u => u.Borrow_Id == SelectedBorrow.Borrow_Id);
+
 
                 if (borrow != null)
                 {
+                    var returnBooks = await db.Return
+                        .Where(b => b.Borrow_Id == borrow.Borrow_Id)
+                        .ToListAsync();
+
+                    if (returnBooks.Count <= 0)
+                    {
+                        foreach (var borrowBook in borrow.BorrowBooks!)
+                        {
+                            var book = await db.Books
+                                .FirstOrDefaultAsync(b => b.Book_Id == borrowBook.Book_Id);
+
+                            if (book != null)
+                            {
+                                book.Stock += borrowBook.Borrow_Amount;
+                            }
+                        }
+                    }
+
+                    if (returnBooks.Count > 0)
+                    {
+                        window?.NotificationService.Show("Error", "Can't delete this borrow, student are was return some borrowed book!");
+                        return;
+                    }
+                    
                     db.Borrows.Remove(borrow);
                     await db.SaveChangesAsync();
                     Borrows.Remove(SelectedBorrow);
+
                     ResetFields();
+                    Errors.Clear();
 
                     window?.NotificationService.Show("Delete", "Selected borrow was deleted!");
                 } 
                 else
                 {
-                    window?.NotificationService.Show("Error", "Student not found!");
+                    window?.NotificationService.Show("Error", "Borrow data not found!");
                 }
             }
             else
@@ -315,43 +506,68 @@ public partial class BorrowPageViewModel : ViewModelBase
         }
     }
 
-    private async Task LoadStudents()
-    {
-        try
-        {
-            using var db = new DatabaseService();
-            if (db?.Users != null)
-            {
-                Students.Clear();
-                var students = await db.Users
-                        .Include(u => u.Student)
-                        .ToListAsync();
 
-                foreach (var student in students)
-                {
-                    Students.Add(student);
-                }
-            }
-            else
-            {
-                Console.WriteLine("Database or Students DbSet is null.");
-            }
-        }
-        catch (Exception ex)
+
+    partial void OnSelectedBorrowChanged(BorrowModel? value)
+    {
+        EditFields();
+    }
+
+    private void EditFields()
+    {
+        if (SelectedBorrow == null)
         {
-            Errors.Clear();
-            Errors.Add($"Error loading students: {ex.Message}");
+            Errors.Add("SelectedBorrow is null.");
+            return;
         }
+
+        if (SelectedBorrow.User == null || SelectedBorrow.User.Student == null)
+        {
+            Errors.Add("User or Student is null.");
+            return;
+        }
+
+        Nis = SelectedBorrow.User.Student.NIS;
+        LoanDuration = SelectedBorrow.Loan_Duration;
+        SelectedBook = null;
+        Amount = 0;
+
+        if (SelectedBorrow.BorrowBooks == null)
+        {
+            Errors.Add("BorrowBooks is null.");
+            return;
+        }
+
+        foreach (var borrowBook in SelectedBorrow.BorrowBooks!)
+        {
+            SelectedBooks.Add(new SelectedBooks { Book = borrowBook.Book, Amount = borrowBook.Borrow_Amount });
+            BorrowBooks.Add(new BorrowBookModel { Book_Id = borrowBook!.Book_Id, Borrow_Amount = Amount });
+            SelectedBookIds.Add(borrowBook.Book_Id);
+        }
+
+        Errors.Clear();
     }
 
 
-
-
-    private void ResetFields()
+    [RelayCommand]
+    public void ResetFields()
     {
         Nis = string.Empty;
-        BookId = 0;
+        SelectedBook = null;
+        SelectedBookForDelete = null;
+        SelectedBooks.Clear();
+        BorrowBooks.Clear();
+        SelectedBookIds.Clear();
         Amount = 0;
-        // SelectedStudent = null;
+        LoanDuration = 0;
+        SelectedBorrow = null;
+        Errors.Clear();
     }
+}
+
+
+public class SelectedBooks
+{
+    public BookModel? Book { get; set; }
+    public int Amount { get; set; }
 }

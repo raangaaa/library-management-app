@@ -29,8 +29,8 @@
                         <ColumnDefinition Width="Auto" />
                     </Grid.ColumnDefinitions>
 
-                    <TextBox Grid.Column="0" Watermark="Search title ..." Width="130" />
-                    <Button Grid.Column="1" Background="Blue" Foreground="White" Padding="7" Margin="20 0 0 0">
+                    <TextBox Grid.Column="0" Watermark="Search title ..." Width="130" Text="{Binding Search, UpdateSourceTrigger=PropertyChanged}"/>
+                    <Button Grid.Column="1" Background="Blue" Foreground="White" Padding="7" Margin="20 0 0 0" Command="{Binding SearchStudentsCommand}">
                       <StackPanel Orientation="Horizontal" Spacing="15">
                         <TextBlock>Search</TextBlock>
                         <PathIcon Height="15" Data="{StaticResource SearchRegular}" Foreground="#fff" />  
@@ -82,13 +82,21 @@
           <SplitView.Pane>
               <Border Background="#FFF" Padding="10">
                 <StackPanel Orientation="Vertical">
-                  <Button Grid.Column="2" Background="Blue"
-                            Width="35"
-                            Height="35"
-                            HorizontalAlignment="Left" VerticalAlignment="Center"
-                            Command="{Binding TriggerPaneCommand}">
-                      <PathIcon Height="15" Data="{StaticResource Dissmis}" Foreground="#fff" />
-                  </Button>
+                  <Grid ColumnDefinitions="*,*,*">
+                        <Button Background="Black" Grid.Column="0"
+                                Width="35" Height="35"
+                                HorizontalAlignment="Left" VerticalAlignment="Center"
+                                Command="{Binding TriggerPaneCommand}">
+                            <PathIcon Height="15" Data="{StaticResource Dissmis}" Foreground="#fff" />
+                        </Button>
+                        <TextBlock Grid.Column="1" Foreground="Black" HorizontalAlignment="Center" VerticalAlignment="Center"> Create / Update </TextBlock>
+                        <Button Background="Red" Grid.Column="2"
+                                Height="35"
+                                HorizontalAlignment="Right" VerticalAlignment="Center"
+                                Command="{Binding ResetFields}">
+                            Clear
+                        </Button>
+                    </Grid>
                   <Grid Margin="20" RowDefinitions="Auto,Auto,Auto,Auto,Auto">
 
                       <!-- Username, Password Input -->

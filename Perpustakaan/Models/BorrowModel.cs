@@ -37,7 +37,6 @@ public class BorrowModelValidator : AbstractValidator<BorrowModel>
         RuleFor(b => b.Borrow_Date).NotEmpty();
         RuleFor(b => b.Return_Date).NotEmpty();
         RuleFor(b => b.Loan_Duration).NotEmpty().GreaterThan(0);
-        RuleFor(b => b.Penalty).NotEmpty().GreaterThan(0);
     }
 }
 

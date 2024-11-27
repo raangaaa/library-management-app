@@ -44,7 +44,6 @@ public class UserModelValidator : AbstractValidator<UserModel>
         RuleFor(u => u.Phone).NotEmpty().MaximumLength(15).Matches(@"^\d+$").WithMessage("Phone must be numeric");
         RuleFor(u => u.Username).NotEmpty().MaximumLength(20);
         RuleFor(u => u.Password).NotEmpty().MaximumLength(20);
-        RuleFor(u => u.Student).SetValidator(new StudentModelValidator());
     }
 }
 

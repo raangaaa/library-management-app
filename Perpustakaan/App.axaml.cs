@@ -6,10 +6,14 @@ using Avalonia.Data.Core.Plugins;
 using Avalonia.Markup.Xaml;
 using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Messaging;
+using LiveChartsCore;
+using LiveChartsCore.SkiaSharpView;
 using Microsoft.Extensions.DependencyInjection;
 
 using Perpustakaan.ViewModels;
+using Perpustakaan.ViewModels.Auth;
 using Perpustakaan.Views;
+using Perpustakaan.Views.Auth;
 
 namespace Perpustakaan;
 
@@ -18,6 +22,8 @@ public partial class App : Application
     public override void Initialize()
     {
         AvaloniaXamlLoader.Load(this);
+
+        LiveCharts.Configure(config => config.AddDefaultMappers().AddSkiaSharp()); 
     }
 
     public override void OnFrameworkInitializationCompleted()
@@ -37,13 +43,19 @@ public partial class App : Application
         services.AddTransient<BookPageView>();
         services.AddTransient<StudentPageViewModel>();
         services.AddTransient<StudentPageView>();
+        services.AddTransient<BorrowPageViewModel>();
+        services.AddTransient<BorrowPageView>();
+        services.AddTransient<ReturnPageViewModel>();
+        services.AddTransient<ReturnPageView>();
+        services.AddTransient<LoginPageViewModel>();
+        services.AddTransient<LoginPageView>();
 
 
         var provider = services.BuildServiceProvider();
 
         Ioc.Default.ConfigureServices(provider);
 
-        var vm = Ioc.Default.GetRequiredService<MainViewModel>();
+        var vm = Ioc.Default.GetRequiredService<LoginPageViewModel>();
 
 
         if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop) 

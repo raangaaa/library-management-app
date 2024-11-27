@@ -22,6 +22,8 @@ public partial class BookPageViewModel : ViewModelBase
     {
         IsPaneOpen = !IsPaneOpen;
     }
+    [ObservableProperty]
+    private string? _search;
 
     [ObservableProperty]
     private string? _title;
@@ -43,6 +45,7 @@ public partial class BookPageViewModel : ViewModelBase
     public IAsyncRelayCommand UpdateBookCommand { get; }
     public IAsyncRelayCommand DeleteBookCommand { get; }
     public IAsyncRelayCommand LoadBooksCommand { get; }
+    public IAsyncRelayCommand SearchBooksCommand { get; }
 
     public BookPageViewModel()
     {
@@ -50,8 +53,44 @@ public partial class BookPageViewModel : ViewModelBase
         UpdateBookCommand = new AsyncRelayCommand(UpdateBook);
         DeleteBookCommand = new AsyncRelayCommand(DeleteBook);
         LoadBooksCommand = new AsyncRelayCommand(LoadBooks);
+        SearchBooksCommand = new AsyncRelayCommand(SearchBooks);
 
         _ = LoadBooks();
+    }
+
+    private async Task SearchBooks()
+    {
+        if(string.IsNullOrEmpty(Search))
+        {
+            Errors.Clear();
+            Errors.Add("Fill search");
+            return;
+        }
+        try
+        {
+            using var db = new DatabaseService();
+            if (db?.Books != null)
+            {
+                Books.Clear();
+                var books = await db.Books
+                    .Where(b => EF.Functions.Like(b.Title, $"%{Search}%"))
+                    .ToListAsync();
+
+                foreach (var book in books)
+                {
+                    Books.Add(book);
+                }
+            }
+            else
+            {
+                Console.WriteLine("Database or Books DbSet is null.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Errors.Clear();
+            Errors.Add($"Error loading books: {ex.Message}");
+        }
     }
 
     private async Task LoadBooks()
@@ -249,7 +288,8 @@ public partial class BookPageViewModel : ViewModelBase
         Stock = SelectedBook?.Stock ?? 0;
     }
 
-    private void ResetFields()
+    [RelayCommand]
+    public void ResetFields()
     {
         Title = string.Empty;
         Author = string.Empty;

@@ -4,18 +4,48 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="clr-namespace:Perpustakaan.ViewModels"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             xmlns:lvc="using:LiveChartsCore.SkiaSharpView.Avalonia"
              x:Class="Perpustakaan.Views.HomePageView"
              x:DataType="vm:HomePageViewModel">
-    <Panel>
-        <StackPanel>
-          <StackPanel.Styles>
-                <Style Selector="Border:pointerover">
-                <Setter Property="Background" Value="Red"/>
-                </Style>
-            </StackPanel.Styles>
-            <Border>
-                <TextBlock>I will have red background when hovered.</TextBlock>
-            </Border>
+    <Border Padding="23">
+        <StackPanel Spacing="30">     
+            <StackPanel Orientation="Horizontal" HorizontalAlignment="Left" Spacing="5">
+                <TextBlock FontSize="35" FontWeight="SemiBold" Foreground="Black">Welcome Admin, </TextBlock>
+                <TextBlock Text="{Binding User.Name}" FontSize="35" FontWeight="SemiBold" Foreground="Black"/>
             </StackPanel>
-    </Panel>
+            <Grid ColumnDefinitions="*,*,*">
+                <Border Grid.Column="0" Background="White" CornerRadius="5" Width="350" HorizontalAlignment="Center" VerticalAlignment="Center"
+                        BoxShadow="5 5 10 0 DarkGray" Padding="20">
+                    <StackPanel>
+                        <Grid ColumnDefinitions="*,*">
+                            <TextBlock Grid.Column="0" HorizontalAlignment="Left" FontSize="25" FontWeight="Bold" Foreground="Black">Books</TextBlock>
+                            <PathIcon Grid.Column="1" HorizontalAlignment="Right" Data="{StaticResource BookRegular}" Height="25" Foreground="Blue"/>
+                        </Grid>
+                        <TextBlock Text="{Binding BookCount, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" FontSize="50" FontWeight="SemiBold" Foreground="Black"/>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="1" Background="White" CornerRadius="5" Width="350" HorizontalAlignment="Center" VerticalAlignment="Center"
+                        BoxShadow="5 5 10 0 DarkGray" Padding="20">
+                    <StackPanel>
+                        <Grid ColumnDefinitions="*,*">
+                            <TextBlock Grid.Column="0" HorizontalAlignment="Left" FontSize="25" FontWeight="Bold" Foreground="Black">Students</TextBlock>
+                            <PathIcon Grid.Column="1" HorizontalAlignment="Right" Data="{StaticResource Handshake}" Height="30" Foreground="Blue"/>
+                        </Grid>
+                        <TextBlock Text="{Binding StudentCount, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" FontSize="45" FontWeight="SemiBold" Foreground="Black"/>
+                    </StackPanel>
+                </Border>
+                <Border Grid.Column="2" Background="White" CornerRadius="5" Width="350" HorizontalAlignment="Center" VerticalAlignment="Center"
+                        BoxShadow="5 5 10 0 DarkGray" Padding="20">
+                    <StackPanel>
+                        <Grid ColumnDefinitions="*,*">
+                            <TextBlock Grid.Column="0" HorizontalAlignment="Left" FontSize="25" FontWeight="Bold" Foreground="Black">Borrows</TextBlock>
+                            <PathIcon Grid.Column="1" HorizontalAlignment="Right" Data="{StaticResource Handshake}" Height="30" Foreground="Blue"/>
+                        </Grid>
+                        <TextBlock Text="{Binding BorrowCount, UpdateSourceTrigger=PropertyChanged}" HorizontalAlignment="Center" FontSize="45" FontWeight="SemiBold" Foreground="Black"/>
+                    </StackPanel>
+                </Border>
+            </Grid>
+            <lvc:CartesianChart Series="{Binding Series}"/>
+        </StackPanel>
+    </Border>
 </UserControl>

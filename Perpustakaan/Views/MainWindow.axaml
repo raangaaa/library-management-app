@@ -8,6 +8,6 @@
         x:Class="Perpustakaan.Views.MainWindow"
         WindowStartupLocation="CenterScreen"
         Icon="/Assets/books.png"
-        Title="Library Management">
-        <views:MainView />
+        Title="Library Management"
+        Background="White">
 </Window>

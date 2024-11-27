@@ -25,6 +25,9 @@ public partial class StudentPageViewModel : ViewModelBase
     }
 
     [ObservableProperty]
+    private string? _search;
+
+    [ObservableProperty]
     private string? _nis;
     [ObservableProperty]
     private string? _name;
@@ -50,6 +53,7 @@ public partial class StudentPageViewModel : ViewModelBase
     public IAsyncRelayCommand UpdateStudentCommand { get; }
     public IAsyncRelayCommand DeleteStudentCommand { get; }
     public IAsyncRelayCommand LoadStudentsCommand { get; }
+    public IAsyncRelayCommand SearchStudentsCommand { get; }
 
     public StudentPageViewModel()
     {
@@ -57,8 +61,46 @@ public partial class StudentPageViewModel : ViewModelBase
         UpdateStudentCommand = new AsyncRelayCommand(UpdateStudent);
         DeleteStudentCommand = new AsyncRelayCommand(DeleteStudent);
         LoadStudentsCommand = new AsyncRelayCommand(LoadStudents);
+        SearchStudentsCommand = new AsyncRelayCommand(SearchStudents);
 
         _ = LoadStudents();
+    }
+
+    private async Task SearchStudents()
+    {
+        if(string.IsNullOrEmpty(Search))
+        {
+            Errors.Clear();
+            Errors.Add("Fill search");
+            return;
+        }
+        try
+        {
+            using var db = new DatabaseService();
+            if (db?.Users != null && db?.Students != null)
+            {
+                Students.Clear();
+                var users = await db.Users
+                    .Where(b => EF.Functions.Like(b.Name, $"%{Search}%"))
+                    .Include(u => u.Student)
+                    .ToListAsync();
+
+                foreach (var user in users)
+                {
+                    Students.Add(user);
+                }
+
+            }
+            else
+            {
+                Console.WriteLine("Database or Books DbSet is null.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Errors.Clear();
+            Errors.Add($"Error loading books: {ex.Message}");
+        }
     }
 
     private async Task LoadStudents()
@@ -95,6 +137,13 @@ public partial class StudentPageViewModel : ViewModelBase
         var lifetime = Avalonia.Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
         var window = lifetime?.Windows?.FirstOrDefault(x => x is MainWindow) as MainWindow;
 
+        var student = new StudentModel
+        {
+            NIS = Nis,
+            Class = Class,
+            Address = Address
+        };
+
         var user =  new UserModel
         {
             Name = Name,
@@ -103,21 +152,28 @@ public partial class StudentPageViewModel : ViewModelBase
             Phone = Phone,
             Username = Username,
             Password = Password,
-            Student = new StudentModel
-            {
-                NIS = Nis,
-                Class = Class,
-                Address = Address
-            }
+            Student = student
         };
 
         var validatorUser = new UserModelValidator();
-        var results = validatorUser.Validate(user);
+        var validatorStudent = new StudentModelValidator();
+        var resultsUser = validatorUser.Validate(user);
+        var resultsStudent = validatorUser.Validate(user);
 
-        if (!results.IsValid)
+        if (!resultsUser.IsValid)
         {
             Errors.Clear();
-            foreach (var failure in results.Errors)
+            foreach (var failure in resultsUser.Errors)
+            {
+                Errors.Add($"Column {failure.PropertyName} failed validation. Error: {failure.ErrorMessage}");
+            }
+            return;
+        }
+
+        if (!resultsStudent.IsValid)
+        {
+            Errors.Clear();
+            foreach (var failure in resultsStudent.Errors)
             {
                 Errors.Add($"Column {failure.PropertyName} failed validation. Error: {failure.ErrorMessage}");
             }
@@ -312,7 +368,8 @@ public partial class StudentPageViewModel : ViewModelBase
         Address = SelectedStudent?.Student?.Address;
     }
 
-    private void ResetFields()
+    [RelayCommand]
+    public void ResetFields()
     {
         Name = string.Empty;
         Email = string.Empty;
