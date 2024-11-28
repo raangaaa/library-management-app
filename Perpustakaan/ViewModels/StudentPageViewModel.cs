@@ -81,8 +81,12 @@ public partial class StudentPageViewModel : ViewModelBase
             {
                 Students.Clear();
                 var users = await db.Users
-                    .Where(b => EF.Functions.Like(b.Name, $"%{Search}%"))
+                    .Where(b => b.Name!.ToLower().Contains(Search))
                     .Include(u => u.Student)
+                    .ToListAsync();
+
+                var students = await db.Students
+                    .Where(b => EF.Functions.Like(b.NIS, $"%{Search}%"))
                     .ToListAsync();
 
                 foreach (var user in users)
@@ -90,17 +94,33 @@ public partial class StudentPageViewModel : ViewModelBase
                     Students.Add(user);
                 }
 
+                foreach (var student in students)
+                {
+                    var user = await db.Users
+                        .Include(u => u.Student)
+                        .FirstOrDefaultAsync(u => u.User_Id == student.User_Id);
+
+                    if (user == null)
+                    {
+                        continue;
+                    }
+                    Students.Add(user);
+                }
+
             }
             else
             {
-                Console.WriteLine("Database or Books DbSet is null.");
+                Console.WriteLine("Database or Students DbSet is null.");
             }
         }
         catch (Exception ex)
         {
             Errors.Clear();
-            Errors.Add($"Error loading books: {ex.Message}");
+            Errors.Add($"Error loading students: {ex.Message}");
+            Console.WriteLine(ex.StackTrace);
+            Console.WriteLine(ex.Message);
         }
+
     }
 
     private async Task LoadStudents()

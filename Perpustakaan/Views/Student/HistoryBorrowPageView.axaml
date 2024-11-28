@@ -1,0 +1,50 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Perpustakaan.ViewModels.Student"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Perpustakaan.Views.Student.HistoryBorrowPageView"
+             x:DataType="vm:HistoryBorrowPageViewModel">
+    <Border Padding="23">
+              <Grid RowDefinitions="Auto,Auto">
+                <TextBlock Grid.Row="0" FontSize="35" FontWeight="SemiBold" Foreground="#000">History Borrow</TextBlock>
+
+                <Border Grid.Row="1" CornerRadius="3" Background="White" Padding="10" Margin="0 10 0 10">
+                    <DataGrid AutoGenerateColumns="False"
+                        ItemsSource="{Binding Borrows}" CornerRadius="5"
+                        IsReadOnly="True"
+                        CanUserReorderColumns="False" Foreground="Black"
+                        CanUserResizeColumns="False">
+
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Nis" Binding="{Binding User.Student.NIS}" CanUserSort="True" Width="Auto" />
+                            <DataGridTextColumn Header="Name" Binding="{Binding User.Name}" CanUserSort="True" Width="*" />
+                            <DataGridTemplateColumn Header="Books | Amount" CanUserSort="False" Width="*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <TreeView ItemsSource="{Binding BorrowBooks}">
+                                            <TreeView.ItemTemplate>
+                                                <TreeDataTemplate>
+                                                    <StackPanel Orientation="Horizontal">
+                                                        <TextBlock Text="{Binding Book.Title}" Foreground="Black"/>
+                                                        <TextBlock Text="|" Foreground="Black" Margin="5 0"/>
+                                                        <TextBlock Text="{Binding Borrow_Amount}" Foreground="Black" Margin="5 0"/>
+                                                    </StackPanel>
+                                                </TreeDataTemplate>
+                                            </TreeView.ItemTemplate>
+                                        </TreeView>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn>
+                            <DataGridTextColumn Header="Borrow Date" Binding="{Binding Borrow_Date}" CanUserSort="True" Width="Auto" />
+                            <DataGridTextColumn Header="Return Date" Binding="{Binding Return_Date}" CanUserSort="True" Width="Auto" />
+                            <DataGridTextColumn Header="Duration" Binding="{Binding Loan_Duration, StringFormat='{}{0} days'}" CanUserSort="True" Width="Auto" />
+                            <DataGridTextColumn Header="Penalty" Binding="{Binding Penalty}" CanUserSort="True" Width="Auto"  />        
+                        </DataGrid.Columns>
+                
+                    </DataGrid>
+                </Border>
+              </Grid>    
+            </Border>
+</UserControl>

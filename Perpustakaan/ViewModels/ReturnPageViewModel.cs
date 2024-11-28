@@ -25,7 +25,7 @@ public partial class ReturnPageViewModel : ViewModelBase
     }
 
     [ObservableProperty]
-    private int _amount;
+    private string? _search;
 
     [ObservableProperty]
     private BookModel? _selectedBook;
@@ -49,18 +49,6 @@ public partial class ReturnPageViewModel : ViewModelBase
             return;
         }
 
-        if (Amount <= 0)
-        {
-            Errors.Add("Please enter a valid amount.");
-            return;
-        }
-
-        if (Amount > 2)
-        {
-            Errors.Add("Max amount is 2.");
-            return;
-        }
-
 
         if (SelectedBookIds.Contains(SelectedBook.Book_Id))
         {
@@ -68,11 +56,10 @@ public partial class ReturnPageViewModel : ViewModelBase
             return;
         }
 
-        SelectedBooks.Add(new SelectedBooks { Book = SelectedBook, Amount = Amount});
-        ReturnBooks.Add(new ReturnModel { Book_Id = SelectedBook!.Book_Id, Return_Date = DateTime.Today, Penalty = SelectedBorrow.Return_Date < DateTime.Today ? (DateTime.Today - SelectedBorrow.Return_Date).Days * 1000 : 0 });
+        SelectedBooks.Add(new SelectedBooks { Book = SelectedBook });
+        ReturnBooks.Add(new ReturnModel { Book_Id = SelectedBook!.Book_Id, Return_Date = DateTime.Now, Penalty = SelectedBorrow.Return_Date < DateTime.Today ? (DateTime.Today - SelectedBorrow.Return_Date).Days * 1000 : 0 });
         SelectedBookIds.Add(SelectedBook.Book_Id);
         SelectedBook = null;
-        Amount = 0;
         Errors.Clear();
     }
     [RelayCommand]
@@ -112,19 +99,75 @@ public partial class ReturnPageViewModel : ViewModelBase
     public ObservableCollection<string> Errors { get; } = [];
 
     public IAsyncRelayCommand SaveReturnBookCommand { get; }
-    // public IAsyncRelayCommand UpdateBorrowCommand { get; }
-    // public IAsyncRelayCommand DeleteBorrowCommand { get; }
+    public IAsyncRelayCommand UpdateReturnBookCommand { get; }
+    public IAsyncRelayCommand DeleteReturnBookCommand { get; }
     public IAsyncRelayCommand LoadBorrowsCommand { get; }
+    public IAsyncRelayCommand SearchBorrowsCommand { get; }
+
 
     public ReturnPageViewModel()
     {
         SaveReturnBookCommand = new AsyncRelayCommand(SaveReturnBook);
-        // UpdateBorrowCommand = new AsyncRelayCommand(UpdateBorrow);
-        // DeleteBorrowCommand = new AsyncRelayCommand(DeleteBorrow);
+        UpdateReturnBookCommand = new AsyncRelayCommand(UpdateReturnBook);
+        DeleteReturnBookCommand = new AsyncRelayCommand(DeleteReturnBook);
         LoadBorrowsCommand = new AsyncRelayCommand(LoadBorrows);
+        SearchBorrowsCommand = new AsyncRelayCommand(SearchBorrows);
 
         _ = LoadBorrows();
     }
+
+    private async Task SearchBorrows()
+    {
+        var lifetime = Avalonia.Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+        var window = lifetime?.Windows?.FirstOrDefault(x => x is MainWindow) as MainWindow;
+        if(string.IsNullOrEmpty(Search))
+        {
+            Errors.Clear();
+            Errors.Add("Fill search");
+            return;
+        }
+        try
+        {
+            using var db = new DatabaseService();
+            if (db?.Books != null && db?.Students != null && db?.Borrows != null)
+            {
+                Borrows.Clear();
+                var student = await db.Students
+                    .FirstOrDefaultAsync(b => EF.Functions.Like(b.NIS, $"%{Search}%"));
+                
+                if (student == null)
+                {
+                    window?.NotificationService.Show("Not found", $"Student with Nis {Search} not found!");
+                }
+
+                var borrows = await db.Borrows
+                    .Include(b => b.BorrowBooks!)
+                        .ThenInclude(bb => bb.Book)
+                    .Include(b => b.User!)
+                        .ThenInclude(u => u.Student)
+                    .Include(b => b.Returns!)
+                        .ThenInclude(bb => bb.Book)
+                    .Where(b => b.User_Id == student!.User_Id)
+                    .ToListAsync();
+                    
+                foreach (var borrow in borrows)
+                {
+                    Borrows.Add(borrow);
+                }
+
+            }
+            else
+            {
+                Console.WriteLine("Database or Books DbSet is null.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Errors.Clear();
+            Errors.Add($"Error loading books: {ex.Message}");
+        }
+    }
+    
 
     private async Task LoadBorrows()
     {
@@ -206,49 +249,40 @@ public partial class ReturnPageViewModel : ViewModelBase
                             return;
                         }
                         
-                        var select = SelectedBooks.FirstOrDefault(b => b.Book!.Book_Id == returned.Book_Id);
                         var book = await db.Books.FirstOrDefaultAsync(b => b.Book_Id == borrowBook.Book_Id);
 
-                        
-
-                        if (returned != null && borrowBook.Borrow_Amount == 0)
-                        {
-                            Errors.Add($"Book {book!.Title} was returned");
-                            return;
-                        }
 
                         if (returned != null)
                         {
+                            // tidak terlambat dan pertama kali mengembalikan
                             if (borrow.Return_Date > DateTime.Today && borrow.Returns!.Count <= 0)
                             {
-                                Console.WriteLine("pertama");
                                 borrow.Penalty = 0;
                             }
+                            // tidak terlambat dan sudah pernah mengembalikan
                             if (borrow.Return_Date > DateTime.Today && borrow.Returns!.Count > 0)
                             {
-                                Console.WriteLine("kedua");
                                 borrow.Penalty = 0;
                             }
+                            // terlambat dan pertama kali mengembalikan
                             if (borrow.Return_Date < DateTime.Today && borrow.Returns!.Count <= 0)
                             {
-                                Console.WriteLine("ketiga");
                                 borrow.Penalty = 0;
                                 borrow.Penalty += (DateTime.Today - borrow.Return_Date).Days * 1000;
                             }
+                            // terlambat dan sudah pernah mengembalikan
                             if (borrow.Return_Date < DateTime.Today && borrow.Returns!.Count > 0)
                             {
-                                Console.WriteLine("keempat");
                                 borrow.Penalty += (DateTime.Today - borrow.Return_Date).Days * 1000;
                             }
 
-                            if (select!.Amount > borrowBook.Borrow_Amount)
+                            if (borrow.Returns!.Any(r => r.Book_Id == borrowBook.Book_Id))
                             {
-                                Errors.Add($"Max returned amount is {borrowBook.Borrow_Amount} for book {borrowBook.Book!.Title}");
+                                Errors.Add($"Book {borrowBook.Book!.Title} was returned");
                                 return;
                             }
 
-                            borrowBook.Borrow_Amount -= select!.Amount;
-                            book!.Stock += select!.Amount;
+                            book!.Stock += borrowBook.Borrow_Amount;
 
                             if (borrow.Returns == null)
                             {
@@ -258,6 +292,7 @@ public partial class ReturnPageViewModel : ViewModelBase
                             {
                                 borrow.Returns.Add(returned);
                             }
+                            
                         }
                         
                     }
@@ -285,199 +320,207 @@ public partial class ReturnPageViewModel : ViewModelBase
 
     }
 
-    // private async Task UpdateBorrow()
-    // {
-    //     var lifetime = Avalonia.Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
-    //     var window = lifetime?.Windows?.FirstOrDefault(x => x is MainWindow) as MainWindow;
+    private async Task UpdateReturnBook()
+    {
+        var lifetime = Avalonia.Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+        var window = lifetime?.Windows?.FirstOrDefault(x => x is MainWindow) as MainWindow;
 
-    //     if (SelectedBorrow == null)
-    //     {
-    //         window?.NotificationService.Show("Error", "No borrow data selected for update!");
-    //         return;
-    //     }
-
-    //     if (string.IsNullOrEmpty(Nis) && SelectedBooks.Count <= 0 && LoanDuration <= 0)
-    //     {
-    //         Errors.Add("Fill Nis or Duration and select book first");
-    //         return;
-    //     }
-
-    //     if (BorrowBooks.Count > 1)
-    //     {
-    //         foreach (var borrowBookMax2 in BorrowBooks)
-    //         {
-    //             if (borrowBookMax2.Borrow_Amount > 2)
-    //             {
-    //                 Errors.Add($"Book {borrowBookMax2!.Book!.Title} max request is 2 for all book");
-    //             }
-    //         }
-    //     }
+        if (SelectedBorrow == null)
+        {
+            Errors.Add($"Select data borrow first to make returned data book");
+            return;
+        }
 
 
-    //     try
-    //     {
-    //         using var db = new DatabaseService();
-    //         if (db?.Students != null && db?.Books != null && db?.Borrows != null && db?.BorrowBooks != null)
-    //         {
-    //             var student = await db.Students
-    //                 .Include(s => s.User)
-    //                 .FirstOrDefaultAsync(s => s.NIS == Nis);
+        try
+        {
+            using var db = new DatabaseService();
+            if (db?.Borrows != null && db?.Books != null)
+            {
 
-    //             var bookExist = await db.Books
-    //                 .CountAsync(book => SelectedBookIds.Contains(book.Book_Id)) == SelectedBookIds.Count;
+                // -----------------------------------------------------------
 
-    //             if (bookExist && student == null)
-    //             {
-    //                 Errors.Clear();
-    //                 Errors.Add("Student Nis or Book Not Found:");
-    //                 return;
-    //             }
-
-    //             // -----------------------------------------------------------
-
-    //             var borrow = await db.Borrows
-    //                 .Include(bb => bb.BorrowBooks)
-    //                 .FirstOrDefaultAsync(s => s.Borrow_Id == SelectedBorrow.Borrow_Id);
+                var borrow = await db.Borrows
+                    .Include(b => b.BorrowBooks!)
+                        .ThenInclude(bb => bb.Book)
+                    .Include(b => b.Returns)
+                    .FirstOrDefaultAsync(s => s.Borrow_Id == SelectedBorrow.Borrow_Id);
                 
 
-    //             if (borrow != null)
-    //             {
-    //                 foreach (var borrowBook in borrow!.BorrowBooks!)
-    //                 {
-    //                     var book = await db.Books
-    //                         .FirstOrDefaultAsync(b => b.Book_Id == borrowBook.Book_Id);
+                if (borrow != null)
+                {
+                    if (borrow.BorrowBooks == null)
+                    {
+                        Errors.Add("Borrow books is null");
+                        return;
+                    }
+
+                    if (borrow.Returns == null)
+                    {
+                        Errors.Add("Return books is null");
+                        return;
+                    }
+
+                    foreach (var returnedBook in borrow.Returns)
+                    {
+                        borrow.Penalty -= returnedBook.Penalty;
+                    }
+
+                    foreach (var borrowBook in borrow.BorrowBooks)
+                    {
+                        if (borrowBook.Book == null)
+                        {
+                            Errors.Add("Borrow book is null");
+                            return;
+                        }
+
+                        borrowBook.Book.Stock -= borrowBook.Borrow_Amount;
+                        var returned = ReturnBooks.FirstOrDefault(r => r.Book_Id == borrowBook.Book_Id);
+
+                        if (returned == null)
+                        {
+                            continue;
+                        }
+                        if (SelectedBooks == null)
+                        {
+                            Errors.Add("SelectedBooks books list is null");
+                            return;
+                        }
                         
-    //                     if (book != null)
-    //                     {
-    //                         book.Stock += borrowBook.Borrow_Amount;
-    //                     }
-    //                 }
-
-    //                 borrow.User_Id = student!.User!.User_Id;
-    //                 borrow.Return_Date = borrow.Borrow_Date.AddDays(LoanDuration);
-    //                 borrow.BorrowBooks = BorrowBooks;
-
-    //                 foreach (var borrowBook in BorrowBooks)
-    //                 {
-    //                     var book = await db.Books
-    //                                     .FirstOrDefaultAsync(b => b.Book_Id == borrowBook.Book_Id);
-
-    //                     if (book == null)
-    //                     {
-    //                         Errors.Add($"Book with ID {borrowBook.Book_Id} does not exist.");
-    //                         return;
-    //                     }
-
-    //                     if (borrowBook.Borrow_Amount > book.Stock)
-    //                     {
-    //                         Errors.Add($"Insufficient stock for book '{book.Title}'. Available stock: {book.Stock}, Requested: {borrowBook.Borrow_Amount}");
-    //                         return;
-    //                     }
-
-    //                     if (book != null)
-    //                     {
-    //                         book.Stock -= borrowBook.Borrow_Amount;
-    //                     }
-    //                 }
-
-    //                 await db.SaveChangesAsync();
-    //                 await LoadReturns();
-
-    //                 ResetFields();
-    //                 Errors.Clear();
-
-    //                 window?.NotificationService.Show("Update", "Selected borrow successfully updated!");
-    //             }
-    //             else
-    //             {
-    //                 Errors.Add("Borrow not found!");
-    //                 return;
-    //             }
-    //         }
-    //         else
-    //         {
-    //             Console.WriteLine("Database or Borrows DbSet is null.");
-    //         }
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Errors.Clear();
-    //         Errors.Add($"Error loading student and book: {ex.Message}");
-    //     }
-    // }
-
-    // private async Task DeleteBorrow()
-    // {
-    //     var lifetime = Avalonia.Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
-    //     var window = lifetime?.Windows?.FirstOrDefault(x => x is MainWindow) as MainWindow;
-
-    //     if (SelectedBorrow == null)
-    //     {
-    //         window?.NotificationService.Show("Error", "No borrow selected for delete!");
-    //         return;
-    //     }
-
-    //     try
-    //     {
-    //         using var db = new DatabaseService();
-    //         if (db.Borrows != null && db.Return != null && db.Books != null)
-    //         {
-    //             var borrow = await db.Borrows
-    //                 .Include(bb => bb.BorrowBooks)
-    //                 .FirstOrDefaultAsync(u => u.Borrow_Id == SelectedBorrow.Borrow_Id);
+                        var book = await db.Books.FirstOrDefaultAsync(b => b.Book_Id == borrowBook.Book_Id);
 
 
-    //             if (borrow != null)
-    //             {
-    //                 var returnBooks = await db.Return
-    //                     .Where(b => b.Borrow_Id == borrow.Borrow_Id)
-    //                     .ToListAsync();
+                        if (returned != null)
+                        {
+                            // tidak terlambat dan pertama kali mengembalikan
+                            if (borrow.Return_Date > DateTime.Today && borrow.Returns!.Count <= 0)
+                            {
+                                borrow.Penalty = 0;
+                            }
+                            // tidak terlambat dan sudah pernah mengembalikan
+                            if (borrow.Return_Date > DateTime.Today && borrow.Returns!.Count > 0)
+                            {
+                                borrow.Penalty = 0;
+                            }
+                            // terlambat dan pertama kali mengembalikan
+                            if (borrow.Return_Date < DateTime.Today && borrow.Returns!.Count <= 0)
+                            {
+                                borrow.Penalty = 0;
+                                borrow.Penalty += (DateTime.Today - borrow.Return_Date).Days * 1000;
+                            }
+                            // terlambat dan sudah pernah mengembalikan
+                            if (borrow.Return_Date < DateTime.Today && borrow.Returns!.Count > 0)
+                            {
+                                borrow.Penalty += (DateTime.Today - borrow.Return_Date).Days * 1000;
+                            }
 
-    //                 if (returnBooks.Count <= 0)
-    //                 {
-    //                     foreach (var borrowBook in borrow.BorrowBooks!)
-    //                     {
-    //                         var book = await db.Books
-    //                             .FirstOrDefaultAsync(b => b.Book_Id == borrowBook.Book_Id);
+                            borrow.Returns.Clear();
 
-    //                         if (book != null)
-    //                         {
-    //                             book.Stock += borrowBook.Borrow_Amount;
-    //                         }
-    //                     }
-    //                 }
+                            if (borrow.Returns!.Any(r => r.Book_Id == borrowBook.Book_Id))
+                            {
+                                Errors.Add($"Book {borrowBook.Book!.Title} was returned");
+                                return;
+                            }
 
-    //                 if (returnBooks.Count > 0)
-    //                 {
-    //                     window?.NotificationService.Show("Error", "Can't delete this borrow, student are was return some borrowed book!");
-    //                     return;
-    //                 }
-                    
-    //                 db.Borrows.Remove(borrow);
-    //                 await db.SaveChangesAsync();
-    //                 Borrows.Remove(SelectedBorrow);
 
-    //                 ResetFields();
-    //                 Errors.Clear();
+                            book!.Stock += borrowBook.Borrow_Amount;
 
-    //                 window?.NotificationService.Show("Delete", "Selected borrow was deleted!");
-    //             } 
-    //             else
-    //             {
-    //                 window?.NotificationService.Show("Error", "Borrow data not found!");
-    //             }
-    //         }
-    //         else
-    //         {
-    //             Console.WriteLine("Database or Students DbSet is null.");
-    //         }
-    //     }
-    //     catch (Exception ex)
-    //     {
-    //         Errors.Clear();
-    //         Errors.Add($"Error deleting student: {ex.Message}");
-    //     }
-    // }
+                            if (borrow.Returns == null)
+                            {
+                                borrow.Returns = ReturnBooks;
+                            }
+                            else
+                            {
+                                borrow.Returns.Add(returned);
+                            }
+                            
+                        }
+                        else 
+                        {
+                            Errors.Add("returned books list is null");
+                            return;
+                        }
+                        
+                    }
+                }
+
+                await db.SaveChangesAsync();
+                await LoadBorrows();
+
+                ResetFields();
+                Errors.Clear();
+
+                window?.NotificationService.Show("Update", "Selected borrow successfully updated!");
+            }
+            else
+            {
+                Console.WriteLine("Database or Borrows DbSet is null.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Errors.Clear();
+            Errors.Add($"Error loading: {ex.Message}");
+            Console.WriteLine(ex.StackTrace);
+        }
+    }
+
+    private async Task DeleteReturnBook()
+    {
+        var lifetime = Avalonia.Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+        var window = lifetime?.Windows?.FirstOrDefault(x => x is MainWindow) as MainWindow;
+
+        if (SelectedBorrow == null)
+        {
+            window?.NotificationService.Show("Error", "No borrow selected for delete!");
+            return;
+        }
+
+        try
+        {
+            using var db = new DatabaseService();
+            if (db.Borrows != null && db.Books != null)
+            {
+                var borrow = await db.Borrows
+                    .Include(b => b.BorrowBooks!)
+                    .Include(b => b.Returns!)
+                    .FirstOrDefaultAsync(b => b.Borrow_Id == SelectedBorrow!.Borrow_Id);
+
+                foreach (var borrowBook in borrow!.BorrowBooks!)
+                {
+                    if (borrow.Returns == null)
+                    {
+                        break;
+                    }
+                    var returned = borrow.Returns.FirstOrDefault(r => r.Book_Id == borrowBook.Book_Id);
+                    var book = await db.Books.FirstOrDefaultAsync(b => b.Book_Id == borrowBook.Book_Id);
+
+                    book!.Stock -= borrowBook.Borrow_Amount;
+                    borrow.Penalty -= returned!.Penalty;
+                }
+
+                borrow!.Returns!.Clear();
+                await db.SaveChangesAsync();
+
+                ResetFields();
+                Errors.Clear();
+                await LoadBorrows();
+
+                window?.NotificationService.Show("Delete", "Selected all returned book was deleted!");
+               
+            }
+            else
+            {
+                Console.WriteLine("Database or Students DbSet is null.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Errors.Clear();
+            Errors.Add($"Error deleting student: {ex.Message}");
+            Console.WriteLine(ex.StackTrace);
+        }
+    }
 
 
     
@@ -502,6 +545,18 @@ public partial class ReturnPageViewModel : ViewModelBase
                         return;
                     }
                     Books.Add(borrowBook.Book);
+                }
+
+                foreach (var returnedBook in SelectedBorrow!.Returns!)
+                {
+                    if (returnedBook.Book == null)
+                    {
+                        Errors.Add("Book not found");
+                        return;
+                    }
+                    SelectedBooks.Add(new SelectedBooks { Book = returnedBook.Book });
+                    ReturnBooks.Add(new ReturnModel { Book_Id = returnedBook.Book_Id, Return_Date = DateTime.Now, Penalty = SelectedBorrow.Return_Date < DateTime.Today ? (DateTime.Today - SelectedBorrow.Return_Date).Days * 1000 : 0 });
+                    SelectedBookIds.Add(returnedBook.Book_Id);
                 }
             }
             else

@@ -1,0 +1,47 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:Perpustakaan.ViewModels.Student"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="Perpustakaan.Views.Student.HistoryReturnPageView"
+             x:DataType="vm:HistoryReturnPageViewModel">
+    <Border Padding="23">
+              <Grid RowDefinitions="Auto,Auto">
+                <TextBlock Grid.Row="0" FontSize="35" FontWeight="SemiBold" Foreground="#000">History Borrow</TextBlock>
+
+                <Border Grid.Row="1" CornerRadius="3" Background="White" Padding="10" Margin="0 10 0 10">
+                    <DataGrid AutoGenerateColumns="False"
+                        ItemsSource="{Binding Returns}" CornerRadius="5"
+                        IsReadOnly="True"
+                        CanUserReorderColumns="False" Foreground="Black"
+                        CanUserResizeColumns="False">
+
+                        <DataGrid.Columns>
+                            <DataGridTextColumn Header="Book" Binding="{Binding Book.Title}" CanUserSort="True" Width="*" />
+                            <!-- <DataGridTemplateColumn Header="Books" CanUserSort="False" Width="*">
+                                <DataGridTemplateColumn.CellTemplate>
+                                    <DataTemplate>
+                                        <ItemsControl ItemsSource="{Binding BorrowBooks}" >
+                                            <ItemsControl.ItemTemplate>
+                                                <DataTemplate>
+                                                    <Grid ColumnDefinitions="Auto,Auto,Auto">
+                                                        <TextBlock Grid.Column="0" Text="{Binding Book.Title}" Foreground="Black" />
+                                                        <TextBlock Grid.Column="1" Foreground="Black"> - </TextBlock>
+                                                        <TextBlock Grid.Column="2" Text="{Binding Borrow_Amount}" Foreground="Black" />                                                
+                                                    </Grid>
+                                                </DataTemplate>
+                                            </ItemsControl.ItemTemplate>
+                                        </ItemsControl>
+                                    </DataTemplate>
+                                </DataGridTemplateColumn.CellTemplate>
+                            </DataGridTemplateColumn> -->
+                            <DataGridTextColumn Header="Return Date" Binding="{Binding Return_Date}" CanUserSort="True" Width="Auto" />
+                            <DataGridTextColumn Header="Penalty" Binding="{Binding Penalty}" CanUserSort="True" Width="Auto"  />        
+                        </DataGrid.Columns>
+                
+                    </DataGrid>
+                </Border>
+              </Grid>    
+            </Border>
+</UserControl>

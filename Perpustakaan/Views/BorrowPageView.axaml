@@ -29,8 +29,8 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <TextBox Grid.Column="0" Watermark="Search title ..." Width="130" />
-                <Button Grid.Column="1" Background="Blue" Foreground="White" Padding="7" Margin="20 0 0 0">
+                <TextBox Grid.Column="0" Watermark="Search Nis ..." Width="130" Text="{Binding Search}"/>
+                <Button Grid.Column="1" Background="Blue" Foreground="White" Padding="7" Margin="20 0 0 0" Command="{Binding SearchBorrowsCommand}">
                     <StackPanel Orientation="Horizontal" Spacing="15">
                         <TextBlock>Search</TextBlock>
                         <PathIcon Height="15" Data="{StaticResource SearchRegular}" Foreground="#fff" />  
@@ -65,29 +65,28 @@
                         CanUserResizeColumns="False" SelectedItem="{Binding SelectedBorrow}">
 
                 <DataGrid.Columns>
-                    <DataGridTextColumn Header="Id" Binding="{Binding Borrow_Id}" CanUserSort="True" Width="Auto" />
                     <DataGridTextColumn Header="Nis" Binding="{Binding User.Student.NIS}" CanUserSort="True" Width="Auto" />
                     <DataGridTextColumn Header="Name" Binding="{Binding User.Name}" CanUserSort="True" Width="*" />
-                    <DataGridTemplateColumn Header="Books" CanUserSort="False" Width="*">
+                    <DataGridTemplateColumn Header="Books | Amount" CanUserSort="False" Width="*">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <ItemsControl ItemsSource="{Binding BorrowBooks}" >
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Grid ColumnDefinitions="Auto,Auto,Auto">
-                                                <TextBlock Grid.Column="0" Text="{Binding Book.Title}" Foreground="Black" />
-                                                <TextBlock Grid.Column="1" Foreground="Black"> - </TextBlock>
-                                                <TextBlock Grid.Column="2" Text="{Binding Borrow_Amount}" Foreground="Black" />                                                
-                                            </Grid>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
+                                <TreeView ItemsSource="{Binding BorrowBooks}">
+                                    <TreeView.ItemTemplate>
+                                        <TreeDataTemplate>
+                                            <StackPanel Orientation="Horizontal">
+                                                <TextBlock Text="{Binding Book.Title}" Foreground="Black"/>
+                                                <TextBlock Text="|" Foreground="Black" Margin="5 0"/>
+                                                <TextBlock Text="{Binding Borrow_Amount}" Foreground="Black" Margin="5 0"/>
+                                            </StackPanel>
+                                        </TreeDataTemplate>
+                                    </TreeView.ItemTemplate>
+                                </TreeView>
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
                     <DataGridTextColumn Header="Borrow Date" Binding="{Binding Borrow_Date}" CanUserSort="True" Width="Auto" />
                     <DataGridTextColumn Header="Return Date" Binding="{Binding Return_Date}" CanUserSort="True" Width="Auto" />
-                    <DataGridTextColumn Header="Duration" Binding="{Binding Loan_Duration, StringFormat='{}{0} day'}" CanUserSort="True" Width="Auto" />
+                    <DataGridTextColumn Header="Duration" Binding="{Binding Loan_Duration, StringFormat='{}{0} days'}" CanUserSort="True" Width="Auto" />
                     <DataGridTextColumn Header="Penalty" Binding="{Binding Penalty}" CanUserSort="True" Width="Auto"  />        
                 </DataGrid.Columns>
                 

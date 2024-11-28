@@ -7,6 +7,7 @@ using CommunityToolkit.Mvvm.DependencyInjection;
 using CommunityToolkit.Mvvm.Input;
 using Perpustakaan.Models;
 using Perpustakaan.Services;
+using Perpustakaan.ViewModels.Auth;
 using Perpustakaan.Views;
 using Perpustakaan.Views.Auth;
 
@@ -21,12 +22,15 @@ public partial class MainViewModel : ViewModelBase
         new ListPageTemplate(typeof(StudentPageViewModel), "PersonRegular", "Data Student"),
         new ListPageTemplate(typeof(BorrowPageViewModel), "Handshake", "Borrow Book"),
         new ListPageTemplate(typeof(ReturnPageViewModel), "BookRegular", "Return Book"),
-
+        new ListPageTemplate(typeof(Logout), "PersonLogout", "Logout"),
     ];
 
     private readonly List<ListPageTemplate> _templatesStudent =
     [
         new ListPageTemplate(typeof(Student.BookPageViewModel), "BookRegular", "Explore Book"),
+        new ListPageTemplate(typeof(Student.HistoryBorrowPageViewModel), "Handshake", "Borrow History"),
+        new ListPageTemplate(typeof(Student.HistoryReturnPageViewModel), "BookRegular", "Return Book History"),
+        new ListPageTemplate(typeof(Logout), "PersonLogout", "Logout"),
     ];
 
 

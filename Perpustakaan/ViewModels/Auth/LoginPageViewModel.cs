@@ -1,6 +1,7 @@
 using System;
 using System.Collections.ObjectModel;
 using System.Threading.Tasks;
+using Avalonia.Controls;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
 using Perpustakaan.Models;
@@ -11,6 +12,12 @@ namespace Perpustakaan.ViewModels.Auth;
 
 public partial class LoginPageViewModel : ViewModelBase 
 {
+    [RelayCommand]
+    private static void Quit(Window? window)
+    {
+        window?.Close();
+    }
+    
     [ObservableProperty]
     private string? _username;
     [ObservableProperty]

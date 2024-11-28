@@ -24,6 +24,10 @@ public partial class BorrowPageViewModel : ViewModelBase
         IsPaneOpen = !IsPaneOpen;
     }
 
+    [ObservableProperty]
+    private string? _search;
+
+
 
     [ObservableProperty]
     private string? _nis;
@@ -112,6 +116,8 @@ public partial class BorrowPageViewModel : ViewModelBase
     public IAsyncRelayCommand UpdateBorrowCommand { get; }
     public IAsyncRelayCommand DeleteBorrowCommand { get; }
     public IAsyncRelayCommand LoadBorrowsCommand { get; }
+    public IAsyncRelayCommand SearchBorrowsCommand { get; }
+
 
     public BorrowPageViewModel()
     {
@@ -119,9 +125,60 @@ public partial class BorrowPageViewModel : ViewModelBase
         UpdateBorrowCommand = new AsyncRelayCommand(UpdateBorrow);
         DeleteBorrowCommand = new AsyncRelayCommand(DeleteBorrow);
         LoadBorrowsCommand = new AsyncRelayCommand(LoadBorrows);
+        SearchBorrowsCommand = new AsyncRelayCommand(SearchBorrows);
 
         _ = LoadBorrows();
         _ = LoadBooks();
+    }
+
+    private async Task SearchBorrows()
+    {
+        var lifetime = Avalonia.Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime;
+        var window = lifetime?.Windows?.FirstOrDefault(x => x is MainWindow) as MainWindow;
+        if(string.IsNullOrEmpty(Search))
+        {
+            Errors.Clear();
+            Errors.Add("Fill search");
+            return;
+        }
+        try
+        {
+            using var db = new DatabaseService();
+            if (db?.Books != null && db?.Students != null && db?.Borrows != null)
+            {
+                Borrows.Clear();
+                var student = await db.Students
+                    .FirstOrDefaultAsync(b => EF.Functions.Like(b.NIS, $"%{Search}%"));
+                
+                if (student == null)
+                {
+                    window?.NotificationService.Show("Not found", $"Student with Nis {Search} not found!");
+                }
+
+                var borrows = await db.Borrows
+                    .Include(b => b.BorrowBooks!)
+                        .ThenInclude(bb => bb.Book)
+                    .Include(b => b.User!)
+                        .ThenInclude(u => u.Student)
+                    .Where(b => b.User_Id == student!.User_Id)
+                    .ToListAsync();
+                    
+                foreach (var borrow in borrows)
+                {
+                    Borrows.Add(borrow);
+                }
+
+            }
+            else
+            {
+                Console.WriteLine("Database or Books DbSet is null.");
+            }
+        }
+        catch (Exception ex)
+        {
+            Errors.Clear();
+            Errors.Add($"Error loading books: {ex.Message}");
+        }
     }
     
 
@@ -278,7 +335,7 @@ public partial class BorrowPageViewModel : ViewModelBase
         catch (Exception ex)
         {
             Errors.Clear();
-            Errors.Add($"Error loading student and book: {ex.Message}");
+            Errors.Add($"Error loading borrow: {ex.Message}");
         }
 
     }
@@ -400,7 +457,7 @@ public partial class BorrowPageViewModel : ViewModelBase
         catch (Exception ex)
         {
             Errors.Clear();
-            Errors.Add($"Error loading student and book: {ex.Message}");
+            Errors.Add($"Error loading borrow: {ex.Message}");
         }
     }
 
@@ -467,13 +524,13 @@ public partial class BorrowPageViewModel : ViewModelBase
             }
             else
             {
-                Console.WriteLine("Database or Students DbSet is null.");
+                Console.WriteLine("Database or Borrows DbSet is null.");
             }
         }
         catch (Exception ex)
         {
             Errors.Clear();
-            Errors.Add($"Error deleting student: {ex.Message}");
+            Errors.Add($"Error deleting borrow: {ex.Message}");
         }
     }
 

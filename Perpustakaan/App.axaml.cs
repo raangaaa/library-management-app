@@ -47,8 +47,15 @@ public partial class App : Application
         services.AddTransient<BorrowPageView>();
         services.AddTransient<ReturnPageViewModel>();
         services.AddTransient<ReturnPageView>();
+        services.AddTransient<Logout>();
         services.AddTransient<LoginPageViewModel>();
         services.AddTransient<LoginPageView>();
+        services.AddTransient<ViewModels.Student.BookPageViewModel>();
+        services.AddTransient<Views.Student.BookPageView>();
+        services.AddTransient<ViewModels.Student.HistoryBorrowPageViewModel>();
+        services.AddTransient<Views.Student.HistoryBorrowPageView>();
+        services.AddTransient<ViewModels.Student.HistoryReturnPageViewModel>();
+        services.AddTransient<Views.Student.HistoryReturnPageView>();
 
 
         var provider = services.BuildServiceProvider();

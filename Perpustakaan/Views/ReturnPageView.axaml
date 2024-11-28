@@ -29,8 +29,8 @@
                     <ColumnDefinition Width="Auto" />
                 </Grid.ColumnDefinitions>
 
-                <TextBox Grid.Column="0" Watermark="Search title ..." Width="130" />
-                <Button Grid.Column="1" Background="Blue" Foreground="White" Padding="7" Margin="20 0 0 0">
+                <TextBox Grid.Column="0" Watermark="Search Nis ..." Width="130" Text="{Binding Search}"/>
+                <Button Grid.Column="1" Background="Blue" Foreground="White" Padding="7" Margin="20 0 0 0" Command="{Binding SearchBorrowsCommand}">
                     <StackPanel Orientation="Horizontal" Spacing="15">
                         <TextBlock>Search</TextBlock>
                         <PathIcon Height="15" Data="{StaticResource SearchRegular}" Foreground="#fff" />  
@@ -42,12 +42,12 @@
                         Command="{Binding LoadBorrowsCommand}">
                     <PathIcon Height="15" Data="{StaticResource Reload}" Foreground="#fff" />
                 </Button>
-                <!-- <Button Grid.Column="3" Content="Delete" Background="#FF2C2C" Foreground="White" Padding="7" Command="{Binding DeleteBorrowCommand}">
+                <Button Grid.Column="3" Content="Delete" Background="#FF2C2C" Foreground="White" Padding="7" Command="{Binding DeleteReturnBookCommand}">
                     <StackPanel Orientation="Horizontal" Spacing="15">
                     <TextBlock>Delete</TextBlock>
                     <PathIcon Height="15" Data="{StaticResource BookExclamationRegular}" Foreground="#fff" />
                     </StackPanel>
-                </Button> -->
+                </Button>
                 <Button Grid.Column="4" Content="Create/Edit" Background="Green" Foreground="White" Padding="7" Command="{Binding TriggerPaneCommand}" Margin="20 0 0 0">
                     <StackPanel Orientation="Horizontal" Spacing="15">
                     <TextBlock>Create / Edit</TextBlock>
@@ -64,52 +64,47 @@
                         CanUserReorderColumns="False" Foreground="Black"
                         CanUserResizeColumns="False" SelectedItem="{Binding SelectedBorrow}">
 
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Nis" Binding="{Binding User.Student.NIS}" CanUserSort="True" Width="Auto" />
-                    <DataGridTemplateColumn Header="Borrowed Books | Amount" CanUserSort="False" Width="Auto">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <ItemsControl ItemsSource="{Binding BorrowBooks}" >
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Padding="5">                                      
-                                                <Grid ColumnDefinitions="Auto,Auto,Auto">
-                                                    <TextBlock Grid.Column="0" Text="{Binding Book.Title}" Foreground="Black" />
-                                                    <TextBlock Grid.Column="1" Foreground="Black"> | </TextBlock>
-                                                    <TextBlock Grid.Column="2" Text="{Binding Borrow_Amount}" Foreground="Black" />                                                
-                                                </Grid>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTemplateColumn Header="Returned Books | Penalty | Date" CanUserSort="False" Width="*">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate>
-                                <ItemsControl ItemsSource="{Binding Returns}">
-                                    <ItemsControl.ItemTemplate>
-                                        <DataTemplate>
-                                            <Border Padding="5">                       
-                                                <Grid ColumnDefinitions="Auto,Auto,Auto,Auto,Auto">
-                                                    <TextBlock Grid.Column="0" Text="{Binding Book.Title}" Foreground="Black" />
-                                                    <TextBlock Grid.Column="1" Foreground="Black"> | </TextBlock>
-                                                    <TextBlock Grid.Column="2" Text="{Binding Penalty}" Foreground="Black" />  
-                                                    <TextBlock Grid.Column="3" Foreground="Black"> | </TextBlock>
-                                                    <TextBlock Grid.Column="4" Text="{Binding Return_Date}" Foreground="Black" />                                                
-                                                </Grid>
-                                            </Border>
-                                        </DataTemplate>
-                                    </ItemsControl.ItemTemplate>
-                                </ItemsControl>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="Borrow Date" Binding="{Binding Borrow_Date}" CanUserSort="True" Width="Auto" />
-                    <DataGridTextColumn Header="Return Date Expect" Binding="{Binding Return_Date}" CanUserSort="True" Width="Auto" />
-                </DataGrid.Columns>
-                
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Nis" Binding="{Binding User.Student.NIS}" CanUserSort="True" Width="Auto" />
+                        <DataGridTemplateColumn Header="Borrowed Books | Amount" CanUserSort="False" Width="Auto">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TreeView ItemsSource="{Binding BorrowBooks}">
+                                        <TreeView.ItemTemplate>
+                                            <TreeDataTemplate>
+                                                <StackPanel Orientation="Horizontal">
+                                                    <TextBlock Text="{Binding Book.Title}" Foreground="Black"/>
+                                                    <TextBlock Text="|" Foreground="Black" Margin="5 0"/>
+                                                    <TextBlock Text="{Binding Borrow_Amount}" Foreground="Black" Margin="5 0"/>
+                                                </StackPanel>
+                                            </TreeDataTemplate>
+                                        </TreeView.ItemTemplate>
+                                    </TreeView>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTemplateColumn Header="Returned Books | Penalty | Date" CanUserSort="False" Width="*">
+                            <DataGridTemplateColumn.CellTemplate>
+                                <DataTemplate>
+                                    <TreeView ItemsSource="{Binding Returns}">
+                                        <TreeView.ItemTemplate>
+                                            <TreeDataTemplate>
+                                                <StackPanel Orientation="Horizontal">                                         
+                                                    <TextBlock Text="{Binding Book.Title}" Foreground="Black"/>
+                                                    <TextBlock Text="|" Foreground="Black" Margin="5 0"/>
+                                                    <TextBlock Text="{Binding Penalty}" Foreground="Black"/>
+                                                    <TextBlock Text="|" Foreground="Black" Margin="5 0"/>
+                                                    <TextBlock Text="{Binding Return_Date}" Foreground="Black"/>
+                                                </StackPanel>
+                                            </TreeDataTemplate>
+                                        </TreeView.ItemTemplate>
+                                    </TreeView>
+                                </DataTemplate>
+                            </DataGridTemplateColumn.CellTemplate>
+                        </DataGridTemplateColumn>
+                        <DataGridTextColumn Header="Borrow Date" Binding="{Binding Borrow_Date}" CanUserSort="True" Width="Auto" />
+                        <DataGridTextColumn Header="Return Date Expect" Binding="{Binding Return_Date}" CanUserSort="True" Width="Auto" />
+                    </DataGrid.Columns>
                 </DataGrid>
             </Border>
             </Grid>    
@@ -137,9 +132,9 @@
                     <Grid Margin="20" RowDefinitions="Auto,Auto,Auto,Auto">
 
                         <!-- Book, Amount Input -->
-                        <Grid Grid.Row="1" RowDefinitions="*,*" ColumnDefinitions="*,*">
-                            <TextBlock Grid.Row="0" Grid.Column="0" Foreground="Black" Text="Book:" HorizontalAlignment="Left" Margin="5 0 0 0"/>
-                            <ComboBox ItemsSource="{Binding Books}"  Grid.Row="1" Grid.Column="0" Margin="5"
+                        <StackPanel Grid.Row="1">
+                            <TextBlock Foreground="Black" Text="Book:" HorizontalAlignment="Left" Margin="5 0 0 0"/>
+                            <ComboBox ItemsSource="{Binding Books}" Margin="5"
                                       SelectedItem="{Binding SelectedBook, UpdateSourceTrigger=PropertyChanged}" BorderThickness="2" BorderBrush="Blue" Background="LightBlue">
                                 <ComboBox.ItemTemplate>
                                     <DataTemplate>
@@ -147,10 +142,7 @@
                                     </DataTemplate>
                                 </ComboBox.ItemTemplate>
                             </ComboBox>
-
-                            <TextBlock Grid.Row="0" Grid.Column="1" Foreground="Black" Text="Amount:" HorizontalAlignment="Left" Margin="5 0 0 0"/>
-                            <TextBox Grid.Row="1" Grid.Column="1" AcceptsReturn="False" BorderThickness="2" BorderBrush="Blue" Background="LightBlue" Foreground="White" Text="{Binding Amount, UpdateSourceTrigger=PropertyChanged}" Margin="5"/>
-                        </Grid>
+                        </StackPanel>
 
                         <!-- Selected Books -->
                         <Border Grid.Row="2" Height="100">
@@ -164,7 +156,6 @@
 
                                         <DataGrid.Columns>
                                             <DataGridTextColumn Header="Book Title" Binding="{Binding Book.Title}" CanUserSort="False" Width="*" />
-                                            <DataGridTextColumn Header="Amount" Binding="{Binding Amount}" CanUserSort="False" Width="*" /> 
                                         </DataGrid.Columns>
                                         
                                     </DataGrid>
@@ -186,10 +177,10 @@
                                 HorizontalAlignment="Center"
                                 Margin="10" Background="Blue" Foreground="White" Padding="7"
                                 Command="{Binding SaveReturnBookCommand}" />
-                            <!-- <Button Content="Update" Grid.Row="1" Grid.Column="1"
+                            <Button Content="Update" Grid.Row="1" Grid.Column="1"
                                 HorizontalAlignment="Center"
                                 Margin="10" Background="Yellow" Foreground="White" Padding="7"
-                                Command="{Binding UpdateBorrowCommand}"/> -->
+                                Command="{Binding UpdateReturnBookCommand}"/>
                         </Grid>
                     </Grid>
 
